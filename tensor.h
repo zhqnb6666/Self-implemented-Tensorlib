@@ -60,6 +60,12 @@ public:
     // a function that returns the dimensions of the tensor
     std::vector<size_t> dimensions() const;
 
+    // a function that returns the data_ptr of the tensor
+    T* data_ptr();
+
+    // a function that returns the type of the tensor
+    string type() const;
+
     // a function that returns the data of the tensor
     std::vector<T> values() const;
 

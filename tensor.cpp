@@ -125,6 +125,32 @@ size_t Tensor<T>::size() const {
     return data.size();
 }
 
+// a function that returns the data_ptr of the tensor
+template<typename T>
+T* Tensor<T>::data_ptr() {
+    return data.data();
+}
+
+// a function that returns the type of the tensor
+// a function that returns the type of the tensor
+template<typename T>
+string Tensor<T>::type() const {
+    string type_id_name = typeid(T).name();
+    if (type_id_name == "i") {
+        return "int";
+    } else if (type_id_name == "b") {
+        return "bool";
+    } else if (type_id_name == "c") {
+        return "char";
+    } else if (type_id_name == "d") {
+        return "double";
+    } else if (type_id_name == "f") {
+        return "float";
+    } else {
+        return "unknown";
+    }
+}
+
 // a function that returns the dimensions of the tensor
 template<typename T>
 std::vector<size_t> Tensor<T>::dimensions() const {

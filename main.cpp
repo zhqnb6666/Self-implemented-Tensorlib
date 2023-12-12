@@ -9,8 +9,8 @@ void test_tensor() {
     tensor1.print();
 
     // Test the constructor with dimensions and values
-    Tensor<int> tensor2({2,3}, {1, 2, 3, 4, 5, 6});
-    std::cout << tensor2 ;
+    Tensor<int> tensor2({2, 3}, {1, 2, 3, 4, 5, 6});
+    std::cout << tensor2;
 
     // Test the constructor with dimensions and a default value
     Tensor<int> tensor3({2, 2, 3, 2}, 0);
@@ -43,7 +43,7 @@ void test_tensor() {
     // Test the dimensions function
     std::vector<size_t> dims = tensor7.dimensions();
     std::cout << "Dimensions: ";
-    for (size_t dim : dims) {
+    for (size_t dim: dims) {
         std::cout << dim << " ";
     }
     std::cout << std::endl;
@@ -51,7 +51,7 @@ void test_tensor() {
     // Test the values function
     std::vector<int> values = tensor7.values();
     std::cout << "Values: ";
-    for (int value : values) {
+    for (int value: values) {
         std::cout << value << " ";
     }
     std::cout << std::endl;
@@ -61,6 +61,12 @@ void test_tensor() {
 
     // Test the operator[] function
     std::cout << "Element at linear index 5: " << tensor7[5] << std::endl;
+
+    // Test the data_ptr function
+std::cout << "Data pointer: " << tensor7.data_ptr() << std::endl;
+
+// Test the type function
+    std::cout << "Type: " << tensor7.type() << std::endl;
 }
 
 int main() {
