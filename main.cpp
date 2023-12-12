@@ -57,10 +57,7 @@ void test_tensor() {
     std::cout << std::endl;
 
     // Test the operator() function
-    std::cout << "Element at index {1, 2}: " << tensor7({1, 2}) << std::endl;
-
-    // Test the operator[] function
-    std::cout << "Element at linear index 5: " << tensor7[5] << std::endl;
+    std::cout << "Element at index {1, 2}: " << tensor7[{1, 2}] << std::endl;
 
     // Test the data_ptr function
 std::cout << "Data pointer: " << tensor7.data_ptr() << std::endl;
@@ -68,8 +65,27 @@ std::cout << "Data pointer: " << tensor7.data_ptr() << std::endl;
 // Test the type function
     std::cout << "Type: " << tensor7.type() << std::endl;
 }
+void test_rand() {
+    // Test the rand function with double type
+    Tensor<double>* tensor_double = Tensor<double>::rand({2, 3});
+    std::cout << "Double tensor:" << std::endl;
+    tensor_double->print();
+    delete tensor_double;
 
+    // Test the rand function with int type
+    Tensor<int>* tensor_int = Tensor<int>::rand({2, 3});
+    std::cout << "Int tensor:" << std::endl;
+    tensor_int->print();
+    delete tensor_int;
+
+    // Test the rand function with bool type
+    Tensor<bool>* tensor_bool = Tensor<bool>::rand({2, 3});
+    std::cout << "Bool tensor:" << std::endl;
+    tensor_bool->print();
+    delete tensor_bool;
+}
 int main() {
     test_tensor();
+    test_rand();
     return 0;
 }

@@ -37,6 +37,7 @@ public:
     // a copy constructor that creates a tensor from another tensor
     Tensor(const Tensor<T> &other);
 
+
     // a move constructor that creates a tensor from another tensor
     Tensor(Tensor<T> &&other) noexcept;
 
@@ -50,6 +51,15 @@ public:
     ~Tensor();
 
 
+    //Create a tensor with a given shape and data type and initialize it randomly
+    static Tensor<T> *rand(const std::vector<size_t> &dimensions);
+
+    static Tensor<T> *Zeros(const std::vector<size_t> &dimensions);
+
+    static Tensor<T> *Ones(const std::vector<size_t> &dimensions);
+
+    // a function that returns the eye matrix
+    static Tensor<T> *eye(size_t n);
 
     // a function that returns the order (rank) of the tensor
     size_t order() const;
@@ -61,7 +71,7 @@ public:
     std::vector<size_t> dimensions() const;
 
     // a function that returns the data_ptr of the tensor
-    T* data_ptr();
+    T *data_ptr();
 
     // a function that returns the type of the tensor
     string type() const;
@@ -71,6 +81,7 @@ public:
 
     // a function that prints the tensor elements in a formatted way
     void print(std::ostream &os, const std::vector<size_t> &indices, size_t dim) const;
+
     void print() const;
 
     // an operator that prints the tensor elements in a formatted way
@@ -78,16 +89,15 @@ public:
     }
 
     // an operator that returns a reference to the element at a given multi-index
-    T &operator()(const std::vector<size_t> &indices);
+    T &operator[](const std::vector<size_t> &indices);
 
     // an operator that returns a const reference to the element at a given multi-index
-    const T &operator()(const std::vector<size_t> &indices) const;
+    const T &operator[](const std::vector<size_t> &indices) const;
 
-// an operator that returns a reference to the element at a given linear index
-    T &operator[](size_t index);
+    // an operator that returns a reference to the element at a given index as a tensor
+    Tensor<T> operator()(size_t index);
 
-    // an operator that returns a const reference to the element at a given linear index
-    const T &operator[](size_t index) const;
+    Tensor<T> operator()(size_t index, const std::pair<size_t, size_t> &range);
 
 
 };

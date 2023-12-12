@@ -3,6 +3,7 @@
 //
 
 #include "tensor.h"
+#include <random>
 
 // a helper function to calculate the linear index from a multi-index
 template<typename T>
@@ -127,11 +128,84 @@ size_t Tensor<T>::size() const {
 
 // a function that returns the data_ptr of the tensor
 template<typename T>
-T* Tensor<T>::data_ptr() {
+T *Tensor<T>::data_ptr() {
     return data.data();
 }
 
-// a function that returns the type of the tensor
+//Create a tensor with a given shape and data type and initialize it randomly
+template<typename T>
+Tensor<T>* Tensor<T>::rand(const std::vector<size_t> &dimensions) {
+    // Calculate the total size of the tensor
+    size_t size = 1;
+    for (size_t dim: dimensions) {
+        if (dim == 0) {
+            throw std::invalid_argument("Zero dimension");
+        }
+        size *= dim;
+    }
+    // Create a data vector and fill it with random numbers
+    std::vector<T> data(size);
+    if (std::is_same<T, int>::value) {
+        for (size_t i = 0; i < size; i++) {
+            data[i] = static_cast<T>(std::rand() % 101); // Generate random int between 0 and 100
+        }
+    } else if (std::is_same<T, float>::value) {
+        for (size_t i = 0; i < size; i++) {
+            data[i] = static_cast<T>(std::rand() / (RAND_MAX + 1.0)); // Generate random float between 0 and 1
+        }
+    } else if (std::is_same<T, char>::value) {
+        for (size_t i = 0; i < size; i++) {
+            data[i] = static_cast<T>(std::rand() % 256); // Generate random char between 0 and 255
+        }
+
+    } else if (std::is_same<T, double>::value) {
+        for (size_t i = 0; i < size; i++) {
+            data[i] = static_cast<T>(std::rand() / (RAND_MAX + 1.0)); // Generate random double between 0 and 1
+        }
+    } else if (std::is_same<T, bool>::value) {
+        for (size_t i = 0; i < size; i++) {
+            data[i] = static_cast<T>(std::rand() % 2); // Generate random bool
+        }
+    } else {
+        throw std::invalid_argument("Unsupported data type");
+    }
+    Tensor<T> *tensor = new Tensor<T>(dimensions, data);
+    return tensor;
+}
+
+//Create a tensor with a given shape and data type and initialize it with zeros
+template<typename T>
+Tensor<T>* Tensor<T>::Zeros(const std::vector<size_t> &dimensions) {
+    auto *tensor = new Tensor<T>(dimensions, 0);
+    return tensor;
+}
+
+//Create a tensor with a given shape and data type and initialize it with ones
+template<typename T>
+Tensor<T>* Tensor<T>::Ones(const std::vector<size_t> &dimensions) {
+    auto *tensor = new Tensor<T>(dimensions, 1);
+    return tensor;
+}
+//Create a identity matrix with a given shape and data type
+template<typename T>
+Tensor<T>* Tensor<T>::eye(size_t n) {
+    // Create a data vector and fill it with zeros
+    std::vector<T> data(n * n, 0);
+
+    // Set the diagonal elements to 1
+    for (size_t i = 0; i < n; i++) {
+        data[i * n + i] = 1;
+    }
+
+    // Create a new Tensor object with the given dimensions and data
+    Tensor<T>* tensor = new Tensor<T>({n, n}, data);
+
+    // Return the pointer to the new Tensor object
+    return tensor;
+}
+
+
+
 // a function that returns the type of the tensor
 template<typename T>
 string Tensor<T>::type() const {
@@ -166,12 +240,12 @@ std::vector<T> Tensor<T>::values() const {
 // a function that prints the tensor elements in a formatted way
 template<typename T>
 void Tensor<T>::print(std::ostream &os, const std::vector<size_t> &indices, size_t dim) const {
-    if(dim == 1&&indices[0]!=0){
-        os<<endl;
-        if(indices.size()==3)os<<endl;
+    if (dim == 1 && indices[0] != 0) {
+        os << endl;
+        if (indices.size() == 3)os << endl;
     }
-    if(dim == 2&&indices[1]!=0)os<<endl;
-    os <<"[";
+    if (dim == 2 && indices[1] != 0)os << endl;
+    os << "[";
     for (size_t i = 0; i < dims[dim]; i++) {
         std::vector<size_t> new_indices = indices;
         new_indices[dim] = i;
@@ -192,19 +266,19 @@ void Tensor<T>::print(std::ostream &os, const std::vector<size_t> &indices, size
 template<typename T>
 void Tensor<T>::print() const {
     // check if the tensor is void
-    if(data.empty()){
+    if (data.empty()) {
         std::cout << "Empty tensor" << std::endl;
         return;
     }
     print(std::cout, std::vector<size_t>(dims.size(), 0), 0);
     std::cout << std::endl;
-    std::cout <<"----------------------------------------"<< std::endl;
+    std::cout << "----------------------------------------" << std::endl;
 }
 
 // an operator that prints the tensor elements in a formatted way
 template<typename T>
 std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
-    if(tensor.data.empty()){
+    if (tensor.data.empty()) {
         os << "Empty tensor" << std::endl;
         return os;
     }
@@ -216,7 +290,7 @@ std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
 
 // an operator that returns a reference to the element at a given multi-index
 template<typename T>
-T &Tensor<T>::operator()(const std::vector<size_t> &indices) {
+T &Tensor<T>::operator[](const std::vector<size_t> &indices) {
     // check if the indices are valid
     if (indices.size() != dims.size()) {
         throw std::invalid_argument("Indices and dimensions do not match");
@@ -227,7 +301,7 @@ T &Tensor<T>::operator()(const std::vector<size_t> &indices) {
 
 // an operator that returns a const reference to the element at a given multi-index
 template<typename T>
-const T &Tensor<T>::operator()(const std::vector<size_t> &indices) const {
+const T &Tensor<T>::operator[](const std::vector<size_t> &indices) const {
     // check if the indices are valid
     if (indices.size() != dims.size()) {
         throw std::invalid_argument("Indices and dimensions do not match");
@@ -235,26 +309,34 @@ const T &Tensor<T>::operator()(const std::vector<size_t> &indices) const {
     // return a const reference to the element at the linear index
     return data[linear_index(indices)];
 }
-
-// an operator that returns a reference to the element at a given linear index
-template<typename T>
-T &Tensor<T>::operator[](size_t index) {
-    // check if the index is valid
-    if (index >= data.size()) {
-        throw std::out_of_range("Index out of range");
-    }
-    // return a reference to the element at the index
-    return data[index];
-}
-
-// an operator that returns a const reference to the element at a given linear index
-template <typename T>
-const T& Tensor<T>::operator[](size_t index) const {
-    // check if the index is valid
-    if (index >= data.size()) {
-        throw std::out_of_range("Index out of range");
-    }
-    // return a const reference to the element at the index
-    return data[index];
-}
+// an operator that returns a reference to the element at a given index as a tensor
+//template<typename T>
+//Tensor<T> Tensor<T>::operator()(size_t index)  {
+//    // Check if the index is valid
+//    if (index >= dims[0]) {
+//        throw std::out_of_range("Index out of range");
+//    }
+//    // Calculate the new dimensions
+//    std::vector<size_t> new_dims(dims.begin() + 1, dims.end());
+//    // Calculate the offset of the data pointer
+//    size_t offset = index * std::accumulate(new_dims.begin(), new_dims.end(), 1, std::multiplies<size_t>());
+//    // Create a new Tensor object with the new dimensions and data
+//    Tensor<T> result(new_dims, std::vector<T>(data.begin() + offset, data.begin() + offset + std::accumulate(new_dims.begin(), new_dims.end(), 1, std::multiplies<size_t>())));
+//    return result;
+//}
+//
+//template<typename T>
+//Tensor<T> Tensor<T>::operator()(size_t index, const std::pair<size_t, size_t>& range)  {
+//    // Check if the index and range are valid
+//    if (index >= dims[0] || range.first > range.second || range.second > dims[1]) {
+//        throw std::out_of_range("Index or range out of range");
+//    }
+//    // Calculate the new dimensions
+//    std::vector<size_t> new_dims = {range.second - range.first};
+//    // Calculate the offset of the data pointer
+//    size_t offset = (index * dims[1] + range.first);
+//    // Create a new Tensor object with the new dimensions and data
+//    Tensor<T> result(new_dims, std::vector<T>(data.begin() + offset, data.begin() + offset + range.second - range.first));
+//    return result;
+//}
 
