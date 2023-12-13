@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
+#include <memory>
 
 using namespace std;
 
@@ -16,7 +17,7 @@ template<typename T>
 class Tensor {
 private:
     // a vector to store the tensor elements
-    std::vector<T> data;
+    std::shared_ptr<std::vector<T>> data;
 
     // a vector to store the tensor dimensions
     std::vector<size_t> dims;
@@ -37,15 +38,18 @@ public:
     // a copy constructor that creates a tensor from another tensor
     Tensor(const Tensor<T> &other);
 
+    //a constructor that creates a tensor from a shared_ptr
+    Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<T>> values);
 
-    // a move constructor that creates a tensor from another tensor
-    Tensor(Tensor<T> &&other) noexcept;
+
+    //create a tensor from another tensor
+    Tensor(Tensor<T> &other);
 
     // a copy assignment operator that assigns a tensor from another tensor
     Tensor<T> &operator=(const Tensor<T> &other);
 
     // a move assignment operator that assigns a tensor from another tensor
-    Tensor<T> &operator=(Tensor<T> &&other);
+    Tensor<T> &operator=(Tensor<T> &other);
 
     // a destructor that destroys the tensor
     ~Tensor();
@@ -95,9 +99,9 @@ public:
     const T &operator[](const std::vector<size_t> &indices) const;
 
     // an operator that returns a reference to the element at a given index as a tensor
-    Tensor<T> operator()(size_t index);
+    Tensor<T>* operator()(size_t index);
 
-    Tensor<T> operator()(size_t index, const std::pair<size_t, size_t> &range);
+    Tensor<T>* operator()(size_t index, const std::pair<size_t, size_t> &range);
 
 
 };

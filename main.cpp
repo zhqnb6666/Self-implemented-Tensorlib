@@ -84,8 +84,36 @@ void test_rand() {
     tensor_bool->print();
     delete tensor_bool;
 }
+void test_operator() {
+    // Create a Tensor object
+    Tensor<int> tensor({3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    std::cout << "Original Tensor:" << std::endl;
+    tensor.print();
+
+    // Use the overloaded operator() function to get a subset of the Tensor
+    Tensor<int>* subset1 = tensor(1);
+    std::cout << "Subset1 Tensor:" << std::endl;
+    subset1->print();
+
+    // Use the overloaded operator() function to get a subset of the Tensor
+    Tensor<int>* subset2 = tensor(1, std::make_pair(0, 1));
+    std::cout << "Subset2 Tensor:" << std::endl;
+    subset2->print();
+
+    // Change an element in the subset
+    (*subset1)[{0}] = 100;
+    std::cout << "Subset Tensor after change:" << std::endl;
+    subset1->print();
+    std::cout << "Original Tensor after subset change:" << std::endl;
+    tensor.print();
+
+    delete subset1;
+    delete subset2;
+}
+
 int main() {
-    test_tensor();
-    test_rand();
+//    test_tensor();
+//    test_rand();
+    test_operator();
     return 0;
 }
