@@ -22,6 +22,9 @@ private:
     // a vector to store the tensor dimensions
     std::vector<size_t> dims;
 
+    // a vector to store the strides
+    std::vector<size_t> strides;
+
     // a helper function to calculate the linear index from a multi-index
     size_t linear_index(const std::vector<size_t> &indices) const;
 
