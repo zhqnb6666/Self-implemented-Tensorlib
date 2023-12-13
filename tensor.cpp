@@ -331,7 +331,7 @@ const T &Tensor<T>::operator[](const std::vector<size_t> &indices) const {
     // return a const reference to the element at the linear index
     return (*data)[linear_index(indices)];
 }
-// an operator that returns a reference to the element at a given index as a tensor
+// indexing,an operator that returns a reference to the element at a given index as a tensor
 template<typename T>
 Tensor<T>* Tensor<T>::operator()(size_t index)  {
     // Check if the index is valid
@@ -351,7 +351,7 @@ Tensor<T>* Tensor<T>::operator()(size_t index)  {
     return result;
 }
 
-// an operator that returns a reference to the element at a given index and range as a tensor
+// slicing,an operator that returns a reference to the element at a given index and range as a tensor
 template<typename T>
 Tensor<T>* Tensor<T>::operator()(size_t index, const std::pair<size_t, size_t>& range)  {
     // Check if the index and range are valid
@@ -370,4 +370,43 @@ Tensor<T>* Tensor<T>::operator()(size_t index, const std::pair<size_t, size_t>& 
     result->data->resize(range.second - range.first);
     return result;
 }
+
+//concatenate,an operator that joins two tensors along a given dimension
+template<typename T>
+Tensor<T> * Tensor<T>::cat(const std::vector<Tensor<T>>& tensors, int dim) {
+    // Check if there is at least one tensor
+    if (tensors.empty()) {
+        throw std::invalid_argument("No tensors to concatenate");
+    }
+
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= tensors[0].dims.size()) {
+        throw std::invalid_argument("Invalid dimension");
+    }
+
+    // Calculate the size of the new tensor
+    std::vector<size_t> new_dims = tensors[0].dims;
+    for (size_t i = 1; i < tensors.size(); ++i) {
+        new_dims[dim] += tensors[i].dims[dim];
+    }
+    // Create the new tensor
+    Tensor<T>* result = new Tensor<T>(new_dims,0);
+    vector<size_t> offset(result->dims.size(),0);
+    vector<size_t> indices(result->dims.size(), 0);
+    for(Tensor tensor:tensors){
+        for (int i = 0; i < tensor.size(); ++i) {
+            //calculate the indices of tensor
+            int temp = i;
+            for (size_t d = 0; d < tensor.dims.size(); ++d) {
+                indices[d] = temp / tensor.strides[d];
+                indices[d] += offset[d];
+                temp %= tensor.strides[d];
+            }
+           (*result)[indices] = (*tensor.data)[i];
+        }
+        offset[dim]+=tensor.dims[dim];
+    }
+    return result;
+}
+
 

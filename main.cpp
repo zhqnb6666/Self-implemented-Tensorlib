@@ -65,6 +65,7 @@ std::cout << "Data pointer: " << tensor7.data_ptr() << std::endl;
 // Test the type function
     std::cout << "Type: " << tensor7.type() << std::endl;
 }
+
 void test_rand() {
     // Test the rand function with double type
     Tensor<double>* tensor_double = Tensor<double>::rand({2, 3});
@@ -84,6 +85,7 @@ void test_rand() {
     tensor_bool->print();
     delete tensor_bool;
 }
+
 void test_operator() {
     // Create a Tensor object
     Tensor<int> tensor({3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
@@ -96,7 +98,7 @@ void test_operator() {
     subset1->print();
 
     // Use the overloaded operator() function to get a subset of the Tensor
-    Tensor<int>* subset2 = tensor(1, std::make_pair(0, 1));
+    Tensor<int>* subset2 = tensor(1, {0, 1});
     std::cout << "Subset2 Tensor:" << std::endl;
     subset2->print();
 
@@ -111,9 +113,23 @@ void test_operator() {
     delete subset2;
 }
 
+void test_cat() {
+    // Create two tensors
+    std::vector<int> data1 = {1, 2, 3, 4};
+    std::vector<int> data2 = {7, 8, 9, 10};
+    Tensor<int> t1({2,2}, data1);
+    Tensor<int> t2({2, 2}, data2);
+
+    // Concatenate the tensors along the first dimension
+    Tensor<int> *t3 = Tensor<int>::cat({t1, t2}, 0);
+    std::cout << "Concatenated tensor along the first dimension:" << std::endl;
+    t3->print();
+}
+
 int main() {
-    test_tensor();
-    test_rand();
-    test_operator();
+//    test_tensor();
+//    test_rand();
+//    test_operator();
+    test_cat();
     return 0;
 }

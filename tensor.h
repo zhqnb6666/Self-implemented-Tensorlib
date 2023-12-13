@@ -61,6 +61,8 @@ public:
     //Create a tensor with a given shape and data type and initialize it randomly
     static Tensor<T> *rand(const std::vector<size_t> &dimensions);
 
+
+
     static Tensor<T> *Zeros(const std::vector<size_t> &dimensions);
 
     static Tensor<T> *Ones(const std::vector<size_t> &dimensions);
@@ -106,8 +108,10 @@ public:
 
     Tensor<T>* operator()(size_t index, const std::pair<size_t, size_t> &range);
 
+    //concatenate,an operator that joins two tensors along a given dimension
+    static Tensor<T> *cat(const std::vector<Tensor<T>>& tensors, int dim);
 
-};
+    };
 
 // include the implementation file
 //#include "tensor.cpp"
