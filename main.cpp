@@ -93,7 +93,7 @@ void test_operator() {
     tensor.print();
 
     // Use the overloaded operator() function to get a subset of the Tensor
-    Tensor<int>* subset1 = tensor(1);
+    Tensor<int>* subset1 = tensor(2);
     std::cout << "Subset1 Tensor:" << std::endl;
     subset1->print();
 
@@ -121,15 +121,62 @@ void test_cat() {
     Tensor<int> t2({2, 2}, data2);
 
     // Concatenate the tensors along the first dimension
-    Tensor<int> *t3 = Tensor<int>::cat({t1, t2}, 0);
+    Tensor<int> *t3 = Tensor<int>::cat({t1, t2}, 1);
     std::cout << "Concatenated tensor along the first dimension:" << std::endl;
     t3->print();
+    delete t3;
 }
 
+void test_tile() {
+    // Create a tensor
+    std::vector<int> data = {1, 2, 3, 4};
+    Tensor<int> t({2, 2}, data);
+
+    // Print the original tensor
+    std::cout << "Original tensor:" << std::endl;
+    t.print();
+
+    // Tile the tensor along the first dimension
+    Tensor<int> *tiled = Tensor<int>::tile(t, 1, 3);
+
+    // Print the tiled tensor
+    std::cout << "Tiled tensor:" << std::endl;
+    tiled->print();
+
+    delete tiled;
+}
+
+void test_mutate() {
+    // Create a tensor
+    std::vector<int> data = {1, 2, 3, 4, 1,1,1,1};
+    Tensor<int> t({2, 4}, data);
+
+    // Print the original tensor
+    std::cout << "Original tensor:" << std::endl;
+    t.print();
+    std::cout << "t(1):" << std::endl;
+    t(1)->print();
+    std::cout<<"Mutated tensor:"<<std::endl;
+    *t(1) = 2;
+    t.print();
+
+   Tensor<int> t2({2, 4}, data);
+    std::cout<<"t2:"<<std::endl;
+    t2.print();
+    // Use the overloaded assignment operator to set all elements to a new array
+    *t2(1,{0,4}) = {5,6,7,8};
+    // Print the modified tensor
+    std::cout << "Modified tensor:" << std::endl;
+    t2.print();
+}
+
+
 int main() {
-//    test_tensor();
-//    test_rand();
-//    test_operator();
+    test_tensor();
+    test_rand();
+    test_operator();
     test_cat();
+    test_tile();
+    test_mutate();
     return 0;
 }

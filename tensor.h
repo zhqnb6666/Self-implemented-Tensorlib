@@ -25,6 +25,9 @@ private:
     // a vector to store the strides
     std::vector<size_t> strides;
 
+    //a int to store the offset
+    size_t offset = 0;
+
     // a helper function to calculate the linear index from a multi-index
     size_t linear_index(const std::vector<size_t> &indices) const;
 
@@ -44,6 +47,8 @@ public:
     //a constructor that creates a tensor from a shared_ptr
     Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<T>> values);
 
+    // a constructor that creates a tensor with given dimensions  values and offset
+    Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<T>> values, size_t offset);
 
     //create a tensor from another tensor
     Tensor(Tensor<T> &other);
@@ -53,6 +58,12 @@ public:
 
     // a move assignment operator that assigns a tensor from another tensor
     Tensor<T> &operator=(Tensor<T> &other);
+
+    //set all the elements of the tensor to a given value
+    Tensor<T> &operator=(const T &value);
+
+    //set all the elements of the tensor to a given value array
+    Tensor<T> &operator=(const std::vector<T> &values);
 
     // a destructor that destroys the tensor
     ~Tensor();
@@ -110,6 +121,9 @@ public:
 
     //concatenate,an operator that joins two tensors along a given dimension
     static Tensor<T> *cat(const std::vector<Tensor<T>>& tensors, int dim);
+
+    //tile,an operator that repeatedly joins the tensor along a given dimension
+    static Tensor<T> *tile(const Tensor<T>& tensor, int dim, int n);
 
     };
 

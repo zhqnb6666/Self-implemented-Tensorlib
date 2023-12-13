@@ -13,7 +13,7 @@ size_t Tensor<T>::linear_index(const std::vector<size_t> &indices) const {
     for (size_t i = 0; i < indices.size(); ++i) {
         index += indices[i] * strides[i];
     }
-    return index;
+    return index+ offset;
 }
 
 // a default constructor that creates an empty tensor
@@ -31,6 +31,20 @@ Tensor<T>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::ve
         strides[i] = strides[i + 1] * dims[i + 1];
     }
 }
+
+// a constructor that creates a tensor with given dimensions  values and offset
+template<typename T>
+Tensor<T>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<T>> values, size_t offset){
+    dims = dimensions;
+    data = values;
+    strides.resize(dims.size());
+    strides[dims.size() - 1] = 1;
+    for (int i = dims.size() - 2; i >= 0; i--) {
+        strides[i] = strides[i + 1] * dims[i + 1];
+    }
+    this->offset = offset;
+}
+
 
 // a constructor that creates a tensor with given dimensions and values
 template<typename T>
@@ -95,6 +109,7 @@ Tensor<T>::Tensor(const Tensor<T> &other) {
     // create a new shared_ptr with a copy of the other tensor's data and assign it to the data member
     data = std::make_shared<std::vector<T>>(*other.data);
     strides = other.strides;
+    offset = other.offset;
 }
 
 
@@ -104,6 +119,7 @@ Tensor<T>::Tensor(Tensor<T> &other) {
     data = other.data;
     dims = other.dims;
     strides = other.strides;
+    offset = other.offset;
 }
 
 // a copy assignment operator that assigns a tensor from another tensor
@@ -115,6 +131,7 @@ Tensor<T> &Tensor<T>::operator=(const Tensor<T> &other) {
         data = std::make_shared<std::vector<T>>(*other.data);
         dims = other.dims;
         strides = other.strides;
+        offset = other.offset;
     }
     return *this;
 }
@@ -128,6 +145,30 @@ Tensor<T> &Tensor<T>::operator=(Tensor<T> &other) {
         data = other.data;
         dims = other.dims;
         strides = other.strides;
+        offset = other.offset;
+    }
+    return *this;
+}
+
+//set all elements in the tensor to the given value
+template<typename T>
+Tensor<T>& Tensor<T>::operator=(const T& value) {
+    // Set all elements in the tensor to the given value
+    std::fill(data->begin()+offset, data->begin()+offset+this->size(), value);
+    return *this;
+}
+
+//set all elements in the tensor to the given array
+template<typename T>
+Tensor<T>& Tensor<T>::operator=(const std::vector<T>& values) {
+    // Check if the size of the values matches the size of the 0th dimension
+    if (values.size() != dims[0]) {
+        throw std::invalid_argument("Size of values does not match size of 0th dimension");
+    }
+    // Set the values at the 0th dimension
+    int range = strides[0];
+    for (size_t i = 0; i < values.size(); ++i) {
+        std::fill(data->begin() + i * range+offset, data->begin() + (i + 1) * range+offset, values[i]);
     }
     return *this;
 }
@@ -145,7 +186,7 @@ size_t Tensor<T>::order() const {
 // a function that returns the size (number of elements) of the tensor
 template<typename T>
 size_t Tensor<T>::size() const {
-    return data->size();
+    return data->size()-offset;
 }
 
 // a function that returns the data_ptr of the tensor
@@ -340,14 +381,10 @@ Tensor<T>* Tensor<T>::operator()(size_t index)  {
     }
     // Calculate the new dimensions
     std::vector<size_t> new_dims(dims.begin() + 1, dims.end());
-    // Calculate the offset of the data pointer
-    size_t offset = index * std::accumulate(new_dims.begin(), new_dims.end(), 1, std::multiplies<size_t>());
+    // Calculate the new offset
+    size_t new_offset = offset + index * strides[0];
     // Create a new Tensor object with the new dimensions and shared data
-    Tensor<T>* result = new Tensor<T>(new_dims, data);
-    // Shift the data pointer by the offset
-    std::rotate(result->data->begin(), result->data->begin() + offset, result->data->end());
-    // Resize the data to match the new dimensions
-    result->data->resize(std::accumulate(new_dims.begin(), new_dims.end(), 1, std::multiplies<size_t>()));
+    Tensor<T>* result = new Tensor<T>(new_dims, data, new_offset);
     return result;
 }
 
@@ -359,15 +396,12 @@ Tensor<T>* Tensor<T>::operator()(size_t index, const std::pair<size_t, size_t>& 
         throw std::out_of_range("Index or range out of range");
     }
     // Calculate the new dimensions
-    std::vector<size_t> new_dims = {range.second - range.first};
-    // Calculate the offset of the data pointer
-    size_t offset = (index * dims[1] + range.first);
+    std::vector<size_t> new_dims(dims.begin() + 1, dims.end());
+    new_dims[0] = range.second - range.first;
+    // Calculate the new offset
+    size_t new_offset = offset + index * strides[0] + range.first * strides[1];
     // Create a new Tensor object with the new dimensions and shared data
-    Tensor<T>* result = new Tensor<T>(new_dims, data);
-    // Shift the data pointer by the offset
-    std::rotate(result->data->begin(), result->data->begin() + offset, result->data->end());
-    // Resize the data to match the new dimensions
-    result->data->resize(range.second - range.first);
+    Tensor<T>* result = new Tensor<T>(new_dims, data, new_offset);
     return result;
 }
 
@@ -391,7 +425,7 @@ Tensor<T> * Tensor<T>::cat(const std::vector<Tensor<T>>& tensors, int dim) {
     }
     // Create the new tensor
     Tensor<T>* result = new Tensor<T>(new_dims,0);
-    vector<size_t> offset(result->dims.size(),0);
+    vector<size_t> offset_vector(result->dims.size(), 0);
     vector<size_t> indices(result->dims.size(), 0);
     for(Tensor tensor:tensors){
         for (int i = 0; i < tensor.size(); ++i) {
@@ -399,14 +433,33 @@ Tensor<T> * Tensor<T>::cat(const std::vector<Tensor<T>>& tensors, int dim) {
             int temp = i;
             for (size_t d = 0; d < tensor.dims.size(); ++d) {
                 indices[d] = temp / tensor.strides[d];
-                indices[d] += offset[d];
+                indices[d] += offset_vector[d];
                 temp %= tensor.strides[d];
             }
-           (*result)[indices] = (*tensor.data)[i];
+           (*result)[indices] = (*tensor.data)[i+tensor.offset];
         }
-        offset[dim]+=tensor.dims[dim];
+        offset_vector[dim]+=tensor.dims[dim];
     }
     return result;
 }
+
+//tile,an operator that repeatedly joins the tensor along a given dimension
+template<typename T>
+Tensor<T> * Tensor<T>::tile(const Tensor<T>& tensor, int dim, int n) {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= tensor.dims.size()) {
+        throw std::invalid_argument("Invalid dimension");
+    }
+
+    // Create a vector to store the tensors to concatenate
+    std::vector<Tensor<T>> tensors(n, tensor);
+
+    // Concatenate the tensors along the given dimension
+    return cat(tensors, dim);
+}
+
+
+
+
 
 
