@@ -10,15 +10,8 @@
 template<typename T>
 size_t Tensor<T>::linear_index(const std::vector<size_t> &indices) const {
     size_t index = 0;
-    size_t factor = 1;
-    for (size_t i = dims.size() - 1; i < dims.size(); i--) {
-        // check if the indices are valid
-        if (indices[i] >= dims[i]) {
-            throw std::out_of_range("Index out of range");
-        }
-        // calculate the linear index
-        index += indices[i] * factor;
-        factor *= dims[i];
+    for (size_t i = 0; i < indices.size(); ++i) {
+        index += indices[i] * strides[i];
     }
     return index;
 }
@@ -32,6 +25,11 @@ template<typename T>
 Tensor<T>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<T>> values) {
     dims = dimensions;
     data = values;
+    strides.resize(dims.size());
+    strides[dims.size() - 1] = 1;
+    for (int i = dims.size() - 2; i >= 0; i--) {
+        strides[i] = strides[i + 1] * dims[i + 1];
+    }
 }
 
 // a constructor that creates a tensor with given dimensions and values
@@ -56,6 +54,11 @@ Tensor<T>::Tensor(const std::vector<size_t> &dimensions, const std::vector<T> &v
     dims = dimensions;
     // create a new shared_ptr with the values and assign it to the data member
     data = std::make_shared<std::vector<T>>(values);
+    strides.resize(dims.size());
+    strides[dims.size() - 1] = 1;
+    for (int i = dims.size() - 2; i >= 0; i--) {
+        strides[i] = strides[i + 1] * dims[i + 1];
+    }
 }
 
 // a constructor that creates a tensor with given dimensions and a default value
@@ -77,6 +80,11 @@ Tensor<T>::Tensor(const std::vector<size_t> &dimensions, const T &value) {
     data = std::make_shared<std::vector<T>>(size, value);
     // copy the dimensions to the class member
     dims = dimensions;
+    strides.resize(dims.size());
+    strides[dims.size() - 1] = 1;
+    for (int i = dims.size() - 2; i >= 0; i--) {
+        strides[i] = strides[i + 1] * dims[i + 1];
+    }
 }
 
 // a copy constructor that creates a tensor from another tensor
@@ -86,6 +94,7 @@ Tensor<T>::Tensor(const Tensor<T> &other) {
     dims = other.dims;
     // create a new shared_ptr with a copy of the other tensor's data and assign it to the data member
     data = std::make_shared<std::vector<T>>(*other.data);
+    strides = other.strides;
 }
 
 
@@ -94,6 +103,7 @@ Tensor<T>::Tensor(Tensor<T> &other) {
     // share the data and dimensions with the other tensor
     data = other.data;
     dims = other.dims;
+    strides = other.strides;
 }
 
 // a copy assignment operator that assigns a tensor from another tensor
@@ -104,6 +114,7 @@ Tensor<T> &Tensor<T>::operator=(const Tensor<T> &other) {
         // copy the data and dimensions from the other tensor
         data = std::make_shared<std::vector<T>>(*other.data);
         dims = other.dims;
+        strides = other.strides;
     }
     return *this;
 }
@@ -116,6 +127,7 @@ Tensor<T> &Tensor<T>::operator=(Tensor<T> &other) {
         // move the data and dimensions from the other tensor
         data = other.data;
         dims = other.dims;
+        strides = other.strides;
     }
     return *this;
 }
@@ -276,7 +288,7 @@ void Tensor<T>::print(std::ostream &os, const std::vector<size_t> &indices, size
 template<typename T>
 void Tensor<T>::print() const {
     // check if the tensor is void
-    if (data->empty()) {
+    if (!data||data->empty()) {
         std::cout << "Empty tensor" << std::endl;
         return;
     }
@@ -288,7 +300,7 @@ void Tensor<T>::print() const {
 // an operator that prints the tensor elements in a formatted way
 template<typename T>
 std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
-    if (tensor.data->empty()) {
+    if (!tensor.data || tensor.data->empty()) {
         os << "Empty tensor" << std::endl;
         return os;
     }

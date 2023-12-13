@@ -112,8 +112,8 @@ void test_operator() {
 }
 
 int main() {
-//    test_tensor();
-//    test_rand();
+    test_tensor();
+    test_rand();
     test_operator();
     return 0;
 }
