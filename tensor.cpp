@@ -5,6 +5,7 @@
 #include "tensor.h"
 #include <random>
 #include <algorithm>
+#include <iomanip>
 
 // a helper function to calculate the linear index from a multi-index
 template<typename T>
@@ -305,16 +306,23 @@ template<typename T>
 void Tensor<T>::print(std::ostream &os, const std::vector<size_t> &indices, size_t dim) const {
     if (dim == 1 && indices[0] != 0) {
         os << endl;
-        if (indices.size() == 3)os << endl;
+        if (indices.size() >= 3)os << endl;
     }
     if (dim == 2 && indices[1] != 0)os << endl;
-    os << "[";
+    if(dim == 2 && indices[1] != 0)os << "  [";
+    else if(dim == 1 && indices[0] != 0)os << " [";
+    else os << "[";
     for (size_t i = 0; i < dims[dim]; i++) {
         std::vector<size_t> new_indices = indices;
         new_indices[dim] = i;
         if (dim == dims.size() - 1) {
             // print the element
-            os << (*data)[linear_index(new_indices)];
+//            os << (*data)[linear_index(new_indices)];
+            if (std::is_same<T, bool>::value) {
+                os << std::setw(7) << std::right << ((*data)[linear_index(new_indices)] ? "true" : "false");
+            } else {
+                os << std::setw(7) << std::right << (*data)[linear_index(new_indices)];
+            }
         } else {
             // recursively print the sub-tensor
             print(os, new_indices, dim + 1);
@@ -337,6 +345,7 @@ void Tensor<T>::print() const {
     std::cout << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 }
+
 
 // an operator that prints the tensor elements in a formatted way
 template<typename T>
