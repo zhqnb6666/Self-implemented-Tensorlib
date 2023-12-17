@@ -2,6 +2,7 @@
 #include "tensor.h"
 #include "tensor.cpp"
 #include <iostream>
+#include "tensor_bool.h"
 
 void test_tensor() {
     // Test the default constructor
@@ -60,7 +61,7 @@ void test_tensor() {
     std::cout << "Element at index {1, 2}: " << tensor7[{1, 2}] << std::endl;
 
     // Test the data_ptr function
-std::cout << "Data pointer: " << tensor7.data_ptr() << std::endl;
+    std::cout << "Data pointer: " << tensor7.data_ptr() << std::endl;
 
 // Test the type function
     std::cout << "Type: " << tensor7.type() << std::endl;
@@ -275,6 +276,32 @@ void test_transpose() {
     delete t_transpose_static;
 }
 
+void testTensor() {
+    // Create a bool tensor
+    std::vector<size_t> dimensions = {2, 3};
+    std::vector<bool> values = {true, false, true, false, true, false};
+    Tensor<bool> tensor(dimensions, values);
+
+    // Print the tensor
+    tensor.print();
+
+    // Test the overloaded [] operator
+    std::vector<size_t> indices = {1, 2};
+    std::cout << "Element at [1, 2]: " << (tensor[indices] ? "true" : "false") << std::endl;
+
+    // Test the set method
+    std::vector<size_t> set_indices = {0, 1};
+    tensor.set(set_indices, true);
+    std::cout << "After setting element at [0, 1] to true:" << std::endl;
+    tensor.print();
+
+    // Test the overloaded () operator
+    Tensor<bool>* subTensor = tensor(1);
+    std::cout << "Sub-tensor at index 1: " << std::endl;
+    subTensor->print();
+    delete subTensor;
+}
+
 
 int main() {
 //    test_tensor();
@@ -285,6 +312,7 @@ int main() {
 //    test_mutate();
 //    test_view();
 //    test_permute();
-    test_transpose();
+//    test_transpose();
+    testTensor();
     return 0;
 }
