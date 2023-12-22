@@ -268,42 +268,26 @@ Tensor<T> log(const Tensor<T> &lhs) {
 
     return result;
 }
-
-//sum: sum the elements to an lower order tensor on a given axis
+//sun: sum of the elements on a given axis
 template<typename T>
-Tensor<T> sum(const Tensor<T> &lhs, size_t axis) {
-        if (axis >= lhs.order()) {
-        throw std::invalid_argument("Invalid axis!");
-    }
-//find the shape of the result
-    vector<size_t> result_shape;
-    for (size_t i = 0; i < lhs.order(); ++i) {
-        if (i == axis) {
-            result_shape.push_back(1);
-        }else{
-            result_shape.push_back(lhs.dimensions()[i]);
-        }
-    }
-    //create a tensor to store the result
-    Tensor<T> result(result_shape);
-    //sum the tensor's elements along the given axis
-    for (size_t i = 0; i < lhs.size(); ++i) {
-        //sum the elements along the given axis
-        result.data_ptr()[i % result.size()] += lhs.values()[i];
-    }
-
-    return result;
+Tensor<T> sum(const Tensor<T> &lhs, const size_t &axis) {
+    return lhs.sum(axis);
 }
-
 //mean: mean of the elements on a given axis
-
-
+template<typename T>
+Tensor<T> mean(const Tensor<T> &lhs, const size_t &axis) {
+    return lhs.mean(axis);
+}
 //max: maximum of the elements on a given axis
-
-
+template<typename T>
+Tensor<T> max(const Tensor<T> &lhs, const size_t &axis) {
+    return Tensor<T>::lhs.max(axis);
+}
 //min: minimum of the elements on a given axis
-
-
+template<typename T>
+Tensor<T> min(const Tensor<T> &lhs, const size_t &axis) {
+    return Tensor<T>::lhs.min(axis);
+}
 //eq: compare two tensors
 template<typename T>
 Tensor<bool> eq(const Tensor<T> &lhs, const Tensor<T> &rhs) {
@@ -406,24 +390,3 @@ Tensor<bool> le(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     Tensor<bool> result_tensor(lhs.dimensions(), result);
     return result_tensor;
 }
-
-/*
-void test_equal(){
-    Tensor<int> t1({2, 2}, {1, 2, 3, 4});
-    Tensor<int> t2({2, 2}, {1, 2, 3, 4});
-    Tensor<int> t3({2, 2}, {1, 2, 3, 5});
-    Tensor<bool> t4 = eq(t1,t2);
-    Tensor<bool> t5 = ne(t1,t3);
-    Tensor<bool> t6 = gt(t1,t3);
-    Tensor<bool> t7 = lt(t1,t3);
-    Tensor<bool> t8 = ge(t1,t3);
-    Tensor<bool> t9 = le(t1,t3);
-    t4.print();
-    t5.print();
-    t6.print();
-    t7.print();
-    t8.print();
-    t9.print();
-}
-
-*/

@@ -1,6 +1,9 @@
-
 #include "tensor.h"
+#include "tensormath.h"
+#include "tensor_bool.h"
+#include "tensor_bool.cpp"
 #include "tensor.cpp"
+#include "tensormath.cpp"
 #include <iostream>
 
 void test_tensor() {
@@ -170,13 +173,47 @@ void test_mutate() {
     t2.print();
 }
 
+void test_equal(){
+    Tensor<int> t1({2, 2}, {1, 2, 3, 4});
+    Tensor<int> t2({2, 2}, {1, 2, 3, 4});
+    Tensor<int> t3({2, 2}, {1, 2, 3, 5});
+    Tensor<bool> t4 = eq(t1,t2);
+    Tensor<bool> t5 = ne(t1,t3);
+    Tensor<bool> t6 = gt(t1,t3);
+    Tensor<bool> t7 = lt(t1,t3);
+    Tensor<bool> t8 = ge(t1,t3);
+    Tensor<bool> t9 = le(t1,t3);
+    t4.print();
+    t5.print();
+    t6.print();
+    t7.print();
+    t8.print();
+    t9.print();
+}
+
+void test_transpose(){
+    Tensor<float> t1({3, 4}, {1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12});
+    t1.print();
+    Tensor<float> t2 = t1.sum(0);
+    t2.print();
+    Tensor<float> t3 = t1.sum(1);
+    t3.print();
+    Tensor<float> t4 = t1.max(0);
+    t4.print();
+    Tensor<float> t5 = t1.max(1);
+    t5.print();
+    Tensor<float> t6 = t1.min(0);
+    t6.print();
+    Tensor<float> t7 = t1.min(1);
+    t7.print();
+    Tensor<float> t8 = t1.mean(0);
+    t8.print();
+    Tensor<float> t9 = t1.mean(1);
+    t9.print();
+    //Tensor<float> t10 = sum(t1,0);
+}
 
 int main() {
-    test_tensor();
-    test_rand();
-    test_operator();
-    test_cat();
-    test_tile();
-    test_mutate();
+    test_transpose();
     return 0;
 }

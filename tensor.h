@@ -25,12 +25,13 @@ private:
     // a vector to store the strides
     std::vector<size_t> strides;
 
-    //a int to store the offset
+    //an int to store the offset
     size_t offset = 0;
 
     // a helper function to calculate the linear index from a multi-index
     size_t linear_index(const std::vector<size_t> &indices) const;
 
+    bool increment_indices(std::vector<size_t> &indices, const std::vector<size_t> &dims) const ;   
 public:
     // a default constructor that creates an empty tensor
     Tensor();
@@ -125,7 +126,31 @@ public:
     //tile,an operator that repeatedly joins the tensor along a given dimension
     static Tensor<T> *tile(const Tensor<T>& tensor, int dim, int n);
 
+    //transpose,an operator that returns a transposed tensor
+    static Tensor<T> * transpose( Tensor<T>& tensor, int dim1, int dim2);
+
+    Tensor<T> transpose( int dim1, int dim2) ;
+
+    //permute,an operator that returns a permuted tensor
+    static Tensor<T> *permute( Tensor<T>& tensor, const std::vector<int>& dims);
+
+    Tensor<T> permute( const std::vector<int>& dims);
+
+    //view,an operator that returns a reshaped tensor
+    static Tensor<T> *view( Tensor<T>& tensor, const std::vector<size_t>& dims);
+
+    Tensor<T> view( const std::vector<size_t>& dims);
+
+    //sum the tensor along a given dimension
+    Tensor<T> sum(int dim) const ;
+    //max: find the maximum of the tensor along a given dimension
+    Tensor<T> max(int dim) const ;
+    //min: find the minimum of the tensor along a given dimension
+    Tensor<T> min(int dim) const ;
+    //mean: find the mean of the tensor along a given dimension
+    Tensor<T> mean(int dim) const ;
     };
+
 
 // include the implementation file
 //#include "tensor.cpp"

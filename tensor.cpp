@@ -5,6 +5,7 @@
 #include "tensor.h"
 #include <random>
 #include <algorithm>
+#include <iomanip>
 
 // a helper function to calculate the linear index from a multi-index
 template<typename T>
@@ -18,7 +19,7 @@ size_t Tensor<T>::linear_index(const std::vector<size_t> &indices) const {
 
 // a default constructor that creates an empty tensor
 template<typename T>
-Tensor<T>::Tensor() {}
+Tensor<T>::Tensor() = default;
 
 //a constructor that creates a tensor from a shared_ptr
 template<typename T>
@@ -175,7 +176,7 @@ Tensor<T>& Tensor<T>::operator=(const std::vector<T>& values) {
 
 // a destructor that destroys the tensor
 template<typename T>
-Tensor<T>::~Tensor() {}
+Tensor<T>::~Tensor() = default;
 
 // a function that returns the order (rank) of the tensor
 template<typename T>
@@ -232,7 +233,7 @@ Tensor<T>* Tensor<T>::rand(const std::vector<size_t> &dimensions) {
     } else {
         throw std::invalid_argument("Unsupported data type");
     }
-    Tensor<T> *tensor = new Tensor<T>(dimensions, data);
+    auto *tensor = new Tensor<T>(dimensions, data);
     return tensor;
 }
 
@@ -249,7 +250,7 @@ Tensor<T>* Tensor<T>::Ones(const std::vector<size_t> &dimensions) {
     auto *tensor = new Tensor<T>(dimensions, 1);
     return tensor;
 }
-//Create a identity matrix with a given shape and data type
+//Create an identity matrix with a given shape and data type
 template<typename T>
 Tensor<T>* Tensor<T>::eye(size_t n) {
     // Create a data vector and fill it with zeros
@@ -261,7 +262,7 @@ Tensor<T>* Tensor<T>::eye(size_t n) {
     }
 
     // Create a new Tensor object with the given dimensions and data
-    Tensor<T>* tensor = new Tensor<T>({n, n}, data);
+    auto* tensor = new Tensor<T>({n, n}, data);
 
     // Return the pointer to the new Tensor object
     return tensor;
@@ -305,16 +306,23 @@ template<typename T>
 void Tensor<T>::print(std::ostream &os, const std::vector<size_t> &indices, size_t dim) const {
     if (dim == 1 && indices[0] != 0) {
         os << endl;
-        if (indices.size() == 3)os << endl;
+        if (indices.size() >= 3)os << endl;
     }
     if (dim == 2 && indices[1] != 0)os << endl;
-    os << "[";
+    if(dim == 2 && indices[1] != 0)os << "  [";
+    else if(dim == 1 && indices[0] != 0)os << " [";
+    else os << "[";
     for (size_t i = 0; i < dims[dim]; i++) {
         std::vector<size_t> new_indices = indices;
         new_indices[dim] = i;
         if (dim == dims.size() - 1) {
             // print the element
-            os << (*data)[linear_index(new_indices)];
+//            os << (*data)[linear_index(new_indices)];
+            if (std::is_same<T, bool>::value) {
+                os << std::setw(7) << std::right << ((*data)[linear_index(new_indices)] ? "true" : "false");
+            } else {
+                os << std::setw(7) << std::right << (*data)[linear_index(new_indices)];
+            }
         } else {
             // recursively print the sub-tensor
             print(os, new_indices, dim + 1);
@@ -337,6 +345,7 @@ void Tensor<T>::print() const {
     std::cout << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 }
+
 
 // an operator that prints the tensor elements in a formatted way
 template<typename T>
@@ -384,7 +393,7 @@ Tensor<T>* Tensor<T>::operator()(size_t index)  {
     // Calculate the new offset
     size_t new_offset = offset + index * strides[0];
     // Create a new Tensor object with the new dimensions and shared data
-    Tensor<T>* result = new Tensor<T>(new_dims, data, new_offset);
+    auto* result = new Tensor<T>(new_dims, data, new_offset);
     return result;
 }
 
@@ -401,7 +410,7 @@ Tensor<T>* Tensor<T>::operator()(size_t index, const std::pair<size_t, size_t>& 
     // Calculate the new offset
     size_t new_offset = offset + index * strides[0] + range.first * strides[1];
     // Create a new Tensor object with the new dimensions and shared data
-    Tensor<T>* result = new Tensor<T>(new_dims, data, new_offset);
+    auto* result = new Tensor<T>(new_dims, data, new_offset);
     return result;
 }
 
@@ -424,7 +433,7 @@ Tensor<T> * Tensor<T>::cat(const std::vector<Tensor<T>>& tensors, int dim) {
         new_dims[dim] += tensors[i].dims[dim];
     }
     // Create the new tensor
-    Tensor<T>* result = new Tensor<T>(new_dims,0);
+    auto* result = new Tensor<T>(new_dims,0);
     vector<size_t> offset_vector(result->dims.size(), 0);
     vector<size_t> indices(result->dims.size(), 0);
     for(Tensor tensor:tensors){
@@ -457,9 +466,280 @@ Tensor<T> * Tensor<T>::tile(const Tensor<T>& tensor, int dim, int n) {
     // Concatenate the tensors along the given dimension
     return cat(tensors, dim);
 }
+//transpose,an operator that returns a transposed tensor
+template<typename T>
+Tensor<T> Tensor<T>::transpose(int dim1, int dim2)  {
+    // Check if the dimensions are valid
+    if (dim1 < 0 || dim1 >= dims.size() || dim2 < 0 || dim2 >= dims.size()) {
+        throw std::invalid_argument("Invalid dimensions");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Swap the strides
+    std::swap(result.strides[dim1], result.strides[dim2]);
+
+    // Swap the dimensions
+    std::swap(result.dims[dim1], result.dims[dim2]);
+
+    return result;
+}
+
+template<typename T>
+Tensor<T> * Tensor<T>::transpose(Tensor<T>& tensor, int dim1, int dim2) {
+    // Check if the dimensions are valid
+    if (dim1 < 0 || dim1 >= tensor.dims.size() || dim2 < 0 || dim2 >= tensor.dims.size()) {
+        throw std::invalid_argument("Invalid dimensions");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    auto* result = new Tensor<T>(tensor);
+
+    // Swap the strides
+    std::swap(result->strides[dim1], result->strides[dim2]);
+
+    // Swap the dimensions
+    std::swap(result->dims[dim1], result->dims[dim2]);
+
+    return result;
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::permute(const std::vector<int>& dims) {
+    // Check if the dimensions are valid
+    if (dims.size() != this->dims.size()) {
+        throw std::invalid_argument("Invalid dimensions");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Permute the strides and dimensions
+    for (size_t i = 0; i < dims.size(); ++i) {
+        result.strides[i] = this->strides[dims[i]];
+        result.dims[i] = this->dims[dims[i]];
+    }
+
+    return result;
+}
+
+template<typename T>
+Tensor<T>* Tensor<T>::permute(Tensor<T>& tensor, const std::vector<int>& dims) {
+    // Check if the dimensions are valid
+    if (dims.size() != tensor.dims.size()) {
+        throw std::invalid_argument("Invalid dimensions");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    auto *result= new Tensor<T>(tensor);
+
+    // Permute the strides and dimensions
+    for (size_t i = 0; i < dims.size(); ++i) {
+        result->strides[i] = tensor.strides[dims[i]];
+        result->dims[i] = tensor.dims[dims[i]];
+    }
+
+    return result;
+}
+template<typename T>
+Tensor<T> Tensor<T>::view(const std::vector<size_t>& dims) {
+    // Check if the dimensions are valid
+    size_t size = 1;
+    for (size_t dim: dims) {
+        if (dim == 0) {
+            throw std::invalid_argument("Zero dimension");
+        }
+        size *= dim;
+    }
+    if (size != this->size()) {
+        throw std::invalid_argument("Dimensions do not match");
+    }
+
+    // Create a new Tensor object with the same data, new dimensions, same strides and offset
+    Tensor<T> result(*this);
+    result.dims = dims;
+    std::vector<size_t> new_strides(dims.size());
+    new_strides[dims.size() - 1] = 1;
+    for (int i = dims.size() - 2; i >= 0; i--) {
+        new_strides[i] = new_strides[i + 1] * dims[i + 1];
+    }
+    result.strides = new_strides;
+    return result;
+}
+
+template<typename T>
+Tensor<T>* Tensor<T>::view(Tensor<T>& tensor, const std::vector<size_t>& dims) {
+    // Check if the dimensions are valid
+    size_t size = 1;
+    for (size_t dim: dims) {
+        if (dim == 0) {
+            throw std::invalid_argument("Zero dimension");
+        }
+        size *= dim;
+    }
+    if (size != tensor.size()) {
+        throw std::invalid_argument("Dimensions do not match");
+    }
+
+    // Create a new Tensor object with the same data, new dimensions, same strides and offset
+    auto *result = new Tensor<T>(tensor);
+    result->dims = dims;
+    std::vector<size_t> new_strides(dims.size());
+    new_strides[dims.size() - 1] = 1;
+    for (int i = dims.size() - 2; i >= 0; i--) {
+        new_strides[i] = new_strides[i + 1] * dims[i + 1];
+    }
+    result->strides = new_strides;
+    return result;
+}
+
+//sum: sum the elements to an lower order tensor on a given axis
+// A function to reduce a tensor along a given dimension and sum the elements in that dimension
+template<typename T>
+Tensor<T> Tensor<T>::sum(int dim) const {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= this->order()) {
+        throw std::out_of_range("Dimension out of range for sum operation");
+    }
+
+    // Determine the dimensions of the result tensor
+    std::vector<size_t> result_dims = this->dims;
+    result_dims.erase(result_dims.begin() + dim); // Remove the dimension being summed
+
+    // Create a tensor to store the result
+    Tensor<T> result(result_dims, T(0));
+
+    // Iterate over the tensor and sum along the specified dimension
+    std::vector<size_t> indices(this->order(), 0);
+    do {
+        // Calculate the linear index for the current element
+        size_t linearIdx = this->linear_index(indices);
+
+        // Calculate the linear index for the result tensor
+        std::vector<size_t> result_indices = indices;
+        result_indices.erase(result_indices.begin() + dim);
+        size_t resultLinearIdx = result.linear_index(result_indices);
+
+        // Sum the elements
+        result.data->at(resultLinearIdx) += this->data->at(linearIdx + this->offset);
+
+    } while (increment_indices(indices, this->dims));
+
+    return result;
+}
+//max: maximum of the elements on a given axis
+// A function to reduce a tensor along a given dimension and find the maximum element in that dimension
+template<typename T>
+Tensor<T> Tensor<T>::max(int dim) const {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= this->order()) {
+        throw std::out_of_range("Dimension out of range for max operation");
+    }
+
+    // Determine the dimensions of the result tensor
+    std::vector<size_t> result_dims = this->dims;
+    result_dims.erase(result_dims.begin() + dim); // Remove the dimension being reduced
+
+    // Create a tensor to store the result
+    Tensor<T> result(result_dims, T(-2147483647));
+
+    // Iterate over the tensor and find the maximum element along the specified dimension
+    std::vector<size_t> indices(this->order(), 0);
+    do {
+        // Calculate the linear index for the current element
+        size_t linearIdx = this->linear_index(indices);
+
+        // Calculate the linear index for the result tensor
+        std::vector<size_t> result_indices = indices;
+        result_indices.erase(result_indices.begin() + dim);
+        size_t resultLinearIdx = result.linear_index(result_indices);
+
+        // Find the maximum element
+        result.data->at(resultLinearIdx) = std::max(result.data->at(resultLinearIdx), this->data->at(linearIdx + this->offset));
+
+    } while (increment_indices(indices, this->dims));
+
+    return result;
+}
+//min: minimum of the elements on a given axis
+// A function to reduce a tensor along a given dimension and find the minimum element in that dimension
+template<typename T>
+Tensor<T> Tensor<T>::min(int dim) const {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= this->order()) {
+        throw std::out_of_range("Dimension out of range for min operation");
+    }
+
+    // Determine the dimensions of the result tensor
+    std::vector<size_t> result_dims = this->dims;
+    result_dims.erase(result_dims.begin() + dim); // Remove the dimension being reduced
+
+    // Create a tensor to store the result
+    Tensor<T> result(result_dims, T(2147483647));
+
+    // Iterate over the tensor and find the minimum element along the specified dimension
+    std::vector<size_t> indices(this->order(), 0);
+    do {
+        // Calculate the linear index for the current element
+        size_t linearIdx = this->linear_index(indices);
+
+        // Calculate the linear index for the result tensor
+        std::vector<size_t> result_indices = indices;
+        result_indices.erase(result_indices.begin() + dim);
+        size_t resultLinearIdx = result.linear_index(result_indices);
+
+        // Find the minimum element
+        result.data->at(resultLinearIdx) = std::min(result.data->at(resultLinearIdx), this->data->at(linearIdx + this->offset));
+
+    } while (increment_indices(indices, this->dims));
+
+    return result;
+}
+//mean: mean value of the elements on a given axis
+// A function to reduce a tensor along a given dimension and find the mean of the elements in that dimension
+template<typename T>
+Tensor<T> Tensor<T>::mean(int dim) const {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= this->order()) {
+        throw std::out_of_range("Dimension out of range for mean operation");
+    }
+
+    // Determine the dimensions of the result tensor
+    std::vector<size_t> result_dims = this->dims;
+    result_dims.erase(result_dims.begin() + dim); // Remove the dimension being reduced
+
+    // Create a tensor to store the result
+    Tensor<T> result(result_dims, T(0));
+
+    // Iterate over the tensor and find the mean of the elements along the specified dimension
+    std::vector<size_t> indices(this->order(), 0);
+    do {
+        // Calculate the linear index for the current element
+        size_t linearIdx = this->linear_index(indices);
+
+        // Calculate the linear index for the result tensor
+        std::vector<size_t> result_indices = indices;
+        result_indices.erase(result_indices.begin() + dim);
+        size_t resultLinearIdx = result.linear_index(result_indices);
+
+        // Calculate the mean
+        result.data->at(resultLinearIdx) += this->data->at(linearIdx + this->offset) / this->dims[dim];
+
+    } while (increment_indices(indices, this->dims));
+
+    return result;
+}
 
 
-
-
-
-
+// A helper function to increment a multi-index for iterating over a tensor
+template<typename T>
+bool Tensor<T>::increment_indices(std::vector<size_t> &indices, const std::vector<size_t> &dims) const {
+    for (int i = indices.size() - 1; i >= 0; --i) {
+        if (++indices[i] < dims[i]) {
+            return true;
+        }
+        indices[i] = 0;
+    }
+    return false;
+}
