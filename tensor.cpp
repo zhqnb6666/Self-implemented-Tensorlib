@@ -76,6 +76,32 @@ Tensor<T>::Tensor(const std::vector<size_t> &dimensions, const std::vector<T> &v
     }
 }
 
+// a constructor that creates a tensor with all information
+template<typename T>
+Tensor<T>::Tensor(const std::vector<size_t> &dimensions, const std::vector<T> &values, const std::vector<size_t> &strides, size_t offset) {
+    // check if the dimensions and values match
+    if (dimensions.empty() || values.empty()) {
+        throw std::invalid_argument("Empty dimensions or values");
+    }
+    size_t size = 1;
+    for (size_t dim: dimensions) {
+        // check if the dimensions are positive
+        if (dim == 0) {
+            throw std::invalid_argument("Zero dimension");
+        }
+        size *= dim;
+    }
+    if (size != values.size()) {
+        throw std::invalid_argument("Dimensions and values do not match");
+    }
+    // copy the dimensions to the class members
+    dims = dimensions;
+    // create a new shared_ptr with the values and assign it to the data member
+    data = std::make_shared<std::vector<T>>(values);
+    this->strides = strides;
+    this->offset = offset;
+}
+
 // a constructor that creates a tensor with given dimensions and a default value
 template<typename T>
 Tensor<T>::Tensor(const std::vector<size_t> &dimensions, const T &value) {
@@ -188,6 +214,24 @@ size_t Tensor<T>::order() const {
 template<typename T>
 size_t Tensor<T>::size() const {
     return data->size()-offset;
+}
+
+// a function that returns the stride of the tensor
+template<typename T>
+std::vector<size_t> Tensor<T>::getstrides() const {
+    return strides;
+}
+
+// a function that returns the offset of the tensor
+template<typename T>
+size_t Tensor<T>::getoffset() const {
+    return offset;
+}
+
+// a function that returns the const data_ptr of the tensor
+template<typename T>
+const T *Tensor<T>::data_ptr() const {
+    return data->data();
 }
 
 // a function that returns the data_ptr of the tensor
@@ -341,7 +385,9 @@ void Tensor<T>::print() const {
         std::cout << "Empty tensor" << std::endl;
         return;
     }
-    print(std::cout, std::vector<size_t>(dims.size(), 0), 0);
+    if(dims.size()==1&&dims[0] ==1){
+        std::cout << data->at(offset) << std::endl;
+    }else print(std::cout, std::vector<size_t>(dims.size(), 0), 0);
     std::cout << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 }
@@ -353,9 +399,12 @@ std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
     if (!tensor.data || tensor.data->empty()) {
         os << "Empty tensor" << std::endl;
         return os;
-    }
+    }if(tensor.dims.size()==1&&tensor.dims[0] ==1){
+        os << tensor.data->at(tensor.offset) << std::endl;
+        return os;
+    }else{
     tensor.print(os, std::vector<size_t>(tensor.dims.size(), 0), 0);
-    os << std::endl;
+    os << std::endl;}
     return os;
 }
 
@@ -370,6 +419,7 @@ T &Tensor<T>::operator[](const std::vector<size_t> &indices) {
     // return a reference to the element at the linear index
     return (*data)[linear_index(indices)];
 }
+
 
 // an operator that returns a const reference to the element at a given multi-index
 template<typename T>
@@ -506,7 +556,7 @@ Tensor<T> * Tensor<T>::transpose( Tensor<T>& tensor, int dim1, int dim2) {
 }
 
 template<typename T>
-Tensor<T> Tensor<T>::permute(const std::vector<int>& dims) {
+Tensor<T> Tensor<T>::permute(const std::vector<int>& dims) const {
     // Check if the dimensions are valid
     if (dims.size() != this->dims.size()) {
         throw std::invalid_argument("Invalid dimensions");
@@ -593,6 +643,9 @@ Tensor<T>* Tensor<T>::view(Tensor<T>& tensor, const std::vector<size_t>& dims) {
     result->strides = new_strides;
     return result;
 }
+
+
+
 
 
 

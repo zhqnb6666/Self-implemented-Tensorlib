@@ -18,6 +18,7 @@ public:
     Tensor(const Tensor<bool> &other);
     Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<char>> values);
     Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<char>> values, size_t offset);
+    Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<char>> values, size_t offset, const std::vector<size_t> &strides);
     Tensor(Tensor<bool> &other);
 
     Tensor<bool> &operator=(const Tensor<bool> &other);
@@ -36,6 +37,9 @@ public:
     size_t size() const;
     std::vector<size_t> dimensions() const;
     char *data_ptr();
+//    const char *data_ptr() const;
+//    std::vector<size_t> getstrides() const;
+//    size_t getoffset() const;
     string type() const;
     std::vector<char>& values() const;
 
@@ -63,4 +67,5 @@ public:
     Tensor<bool> view(const std::vector<size_t>& dims);
 
 //    vector<size_t> indices(size_t linear_index) const;
+
 };

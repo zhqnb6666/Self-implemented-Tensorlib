@@ -1,8 +1,11 @@
 
 #include "tensor.h"
 #include "tensor.cpp"
+#include "save_load.cpp"
 #include <iostream>
 #include "tensor_bool.h"
+#include "tensor_einsum.h"
+//#include "tensor_einsum.cpp"
 
 void test_tensor() {
     // Test the default constructor
@@ -87,7 +90,7 @@ void test_rand() {
     delete tensor_bool;
 }
 
-void test_operator() {
+void test_slice() {
     // Create a Tensor object
     Tensor<int> tensor({3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
     std::cout << "Original Tensor:" << std::endl;
@@ -276,7 +279,7 @@ void test_transpose() {
     delete t_transpose_static;
 }
 
-void testTensor() {
+void test_bool_Tensor() {
     // Create a bool tensor
     std::vector<size_t> dimensions = {2, 3};
     std::vector<bool> values = {true, false, true, false, true, false};
@@ -301,18 +304,95 @@ void testTensor() {
     subTensor->print();
     delete subTensor;
 }
+void test_save_load() {
+    // Create a tensor
+    std::vector<int> data = {1, 2, 3, 4, 5, 6, 7, 8};
+    Tensor<int> original_tensor({2, 2, 2}, data);
 
+    // Save the tensor to a file
+    std::string filename = "test_tensor.txt";
+    save(original_tensor, filename);
+
+    // Load the tensor from the file
+    Tensor<int> loaded_tensor = load<int>(filename);
+
+    // Print the original and loaded tensors
+    std::cout << "Original tensor:" << std::endl;
+    original_tensor.print();
+    std::cout << "Loaded tensor:" << std::endl;
+    loaded_tensor.print();
+}
+
+
+void test_einsum() {
+    // Example tensors for testing
+    Tensor<int> vector1({3}, {1, 2, 3}); // 1D vector
+    Tensor<int> vector2({3}, {4, 5, 6}); // 1D vector
+    Tensor<int> matrix1({3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9}); // 2D matrix
+    Tensor<int> matrix2({3, 2}, {7, 8, 9, 10, 11, 12}); // 2D matrix
+    Tensor<int> matrix3({2, 3}, {13, 14, 15, 16, 17, 18}); // 2D matrix
+    Tensor<int> tensor1({2, 3, 2}, {1, 2, 3, 4, 5, 6 ,7 ,8 ,9 ,10 ,11 ,12}); // 3D tensor
+    Tensor<int> tensor2({2, 3, 2}, {13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24}); // 3D tensor
+
+    // Test Summation
+    std::cout << "Summation Test: " << std::endl;
+    auto sum_result = einsum("i->", vector1);
+    std::cout << "Sum: " << sum_result << std::endl;
+
+    // Test Element-wise Multiplication
+    std::cout << "\nElement-wise Multiplication Test: " << std::endl;
+    auto element_wise_result = einsum("i,i->i", vector1, vector2);
+    element_wise_result.print();
+
+    // Test Matrix Multiplication
+    std::cout << "\nMatrix Multiplication Test: " << std::endl;
+    auto matrix_mul_result = einsum("ij,jk->ik", matrix1, matrix2);
+    matrix_mul_result.print();
+
+    // Test Dot Product
+    std::cout << "\nDot Product Test: " << std::endl;
+    auto dot_product_result = einsum("i,i->", vector1, vector2);
+    std::cout << "Dot product: " << dot_product_result << std::endl;
+
+    // Test Outer Product
+    std::cout << "\nOuter Product Test: " << std::endl;
+    auto outer_product_result = einsum("i,j->ij", vector1, vector2);
+    outer_product_result.print();
+
+    // Test Transpose
+    std::cout << "\nTranspose Test: " << std::endl;
+    auto transpose_result = einsum("ijk->jki", tensor1);
+    std::cout << transpose_result << std::endl;
+
+    // Test Diagonal
+    std::cout << "\nDiagonal Test: " << std::endl;
+    auto diagonal_result = einsum("ii->i", matrix1);
+    diagonal_result.print();
+
+    // Test Trace
+    std::cout << "\nTrace Test: " << std::endl;
+    auto trace_result = einsum("ii", matrix1);
+    std::cout << "Trace: " << trace_result << std::endl;
+
+    // Test inner product
+    std::cout << "\nInner Product Test: " << std::endl;
+    auto inner_product_result = einsum("ijk,kjl->il",tensor1, tensor2);
+    std::cout << "Inner product:\n ";
+    inner_product_result.print();
+}
 
 int main() {
-//    test_tensor();
-//    test_rand();
-//    test_operator();
-//    test_cat();
-//    test_tile();
-//    test_mutate();
-//    test_view();
-//    test_permute();
-//    test_transpose();
-    testTensor();
+    test_tensor();
+    test_rand();
+    test_slice();
+    test_cat();
+    test_tile();
+    test_mutate();
+    test_view();
+    test_permute();
+    test_transpose();
+    test_bool_Tensor();
+    test_save_load();
+    test_einsum();
     return 0;
 }

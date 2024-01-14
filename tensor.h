@@ -31,6 +31,8 @@ private:
     // a helper function to calculate the linear index from a multi-index
     size_t linear_index(const std::vector<size_t> &indices) const;
 
+
+
 public:
     // a default constructor that creates an empty tensor
     Tensor();
@@ -59,7 +61,10 @@ public:
     // a move assignment operator that assigns a tensor from another tensor
     Tensor<T> &operator=(Tensor<T> &other);
 
-    //set all the elements of the tensor to a given value
+    // a constructor that creates a tensor with all information
+    Tensor<T>(const std::vector<size_t> &dimensions, const std::vector<T> &values, const std::vector<size_t> &strides, size_t offset) ;
+
+        //set all the elements of the tensor to a given value
     Tensor<T> &operator=(const T &value);
 
     //set all the elements of the tensor to a given value array
@@ -87,8 +92,17 @@ public:
     // a function that returns the size (number of elements) of the tensor
     size_t size() const;
 
+    // a function that returns the stride of the tensor
+    std::vector<size_t> getstrides() const ;
+
+    // a function that returns the offset of the tensor
+    size_t getoffset() const ;
+
     // a function that returns the dimensions of the tensor
     std::vector<size_t> dimensions() const;
+
+    // a function that returns the const data of the tensor
+    const T *data_ptr() const;
 
     // a function that returns the data_ptr of the tensor
     T *data_ptr();
@@ -105,8 +119,8 @@ public:
     void print() const;
 
     // an operator that prints the tensor elements in a formatted way
-    friend std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
-    }
+    template<typename U>
+    friend std::ostream &operator<<(std::ostream &os, const Tensor<U> &tensor);
 
     // an operator that returns a reference to the element at a given multi-index
     T &operator[](const std::vector<size_t> &indices);
@@ -133,12 +147,14 @@ public:
     //permute,an operator that returns a permuted tensor
     static Tensor<T> *permute( Tensor<T>& tensor, const std::vector<int>& dims);
 
-    Tensor<T> permute( const std::vector<int>& dims);
+    Tensor<T> permute( const std::vector<int>& dims) const;
 
     //view,an operator that returns a reshaped tensor
     static Tensor<T> *view( Tensor<T>& tensor, const std::vector<size_t>& dims);
 
     Tensor<T> view( const std::vector<size_t>& dims);
+
+
     };
 
 

@@ -62,6 +62,12 @@ Tensor<bool>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std:
         strides[i] = strides[i + 1] * dims[i + 1];
     }
 }
+Tensor<bool>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<char>> values, size_t offset, const std::vector<size_t> &strides)
+        : data(std::move(values)),
+          dims(dimensions),
+          strides(strides),
+          offset(offset) {
+}
 Tensor<bool>::Tensor(Tensor<bool> &other)
         : data(other.data),
           dims(other.dims),
@@ -184,6 +190,16 @@ std::vector<size_t> Tensor<bool>::dimensions() const {
 char *Tensor<bool>::data_ptr() {
     return data->data();
 }
+//const char *Tensor<bool>::data_ptr() const {
+//    return data->data();
+//}
+//std::vector<size_t> Tensor<bool>::getstrides() const {
+//    return strides;
+//}
+//size_t Tensor<bool>::getoffset() const {
+//    return offset;
+//}
+
 string Tensor<bool>::type() const {
     return "bool";
 }
@@ -396,6 +412,7 @@ Tensor<bool> Tensor<bool>::view(const std::vector<size_t>& new_dims) {
 
     return result;
 }
+
 
 
 
