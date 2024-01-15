@@ -1,10 +1,12 @@
-
 #include "tensor.h"
 #include "tensor.cpp"
 #include "save_load.cpp"
 #include <iostream>
+#include "tensor_math.h"
+#include "tensor_math.cpp"
 #include "tensor_bool.h"
 #include "tensor_einsum.h"
+
 //#include "tensor_einsum.cpp"
 
 void test_tensor() {
@@ -323,7 +325,6 @@ void test_save_load() {
     loaded_tensor.print();
 }
 
-
 void test_einsum() {
     // Example tensors for testing
     Tensor<int> vector1({3}, {1, 2, 3}); // 1D vector
@@ -381,6 +382,16 @@ void test_einsum() {
     inner_product_result.print();
 }
 
+void test_math(){
+    std::cout<< "math test:"<<std::endl;
+    Tensor<int> matrix1({3, 2}, {1, 2, 3, 4, 5, 6}); // 2D matrix
+    Tensor<int> matrix2({3, 2}, {7, 8, 9, 10, 11, 12}); // 2D matrix
+    Tensor<int> t2 = matrix1 + matrix2;
+    t2.print();
+    Tensor<int> t3 = add(matrix1, matrix2);
+    t3.print();
+}
+
 int main() {
     test_tensor();
     test_rand();
@@ -394,5 +405,6 @@ int main() {
     test_bool_Tensor();
     test_save_load();
     test_einsum();
+    test_math();
     return 0;
 }

@@ -1,5 +1,4 @@
 #pragma once
-
 #include "tensor.h"
 template<>
 class Tensor<bool> {

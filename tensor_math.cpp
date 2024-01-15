@@ -1,5 +1,6 @@
 #include "tensor_math.h"
 #include "tensor.h"
+#include "tensor_bool.h"
 #include <cmath>
 #include <cstddef>
 #include <iostream>

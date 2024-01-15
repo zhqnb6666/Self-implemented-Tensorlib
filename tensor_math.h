@@ -6,6 +6,7 @@
 #include <vector>
 #include <stdexcept>
 #include "tensor.h"
+#include "tensor_bool.h"
 #include <cmath>
 using namespace std;
 
