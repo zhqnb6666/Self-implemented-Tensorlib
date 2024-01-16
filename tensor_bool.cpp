@@ -1,4 +1,6 @@
 #include "tensor_bool.h"
+#include "tensor.h"
+
 #include <random>
 #include <algorithm>
 #include <iomanip>
@@ -61,6 +63,12 @@ Tensor<bool>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std:
     for (int i = dims.size() - 2; i >= 0; i--) {
         strides[i] = strides[i + 1] * dims[i + 1];
     }
+}
+Tensor<bool>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::vector<char>> values, size_t offset, const std::vector<size_t> &strides)
+        : data(std::move(values)),
+          dims(dimensions),
+          strides(strides),
+          offset(offset) {
 }
 Tensor<bool>::Tensor(Tensor<bool> &other)
         : data(other.data),
@@ -184,6 +192,16 @@ std::vector<size_t> Tensor<bool>::dimensions() const {
 char *Tensor<bool>::data_ptr() {
     return data->data();
 }
+//const char *Tensor<bool>::data_ptr() const {
+//    return data->data();
+//}
+//std::vector<size_t> Tensor<bool>::getstrides() const {
+//    return strides;
+//}
+//size_t Tensor<bool>::getoffset() const {
+//    return offset;
+//}
+
 string Tensor<bool>::type() const {
     return "bool";
 }

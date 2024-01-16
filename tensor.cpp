@@ -46,7 +46,6 @@ Tensor<T>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::ve
     this->offset = offset;
 }
 
-
 // a constructor that creates a tensor with given dimensions and values
 template<typename T>
 Tensor<T>::Tensor(const std::vector<size_t> &dimensions, const std::vector<T> &values) {
@@ -74,6 +73,32 @@ Tensor<T>::Tensor(const std::vector<size_t> &dimensions, const std::vector<T> &v
     for (int i = dims.size() - 2; i >= 0; i--) {
         strides[i] = strides[i + 1] * dims[i + 1];
     }
+}
+
+// a constructor that creates a tensor with all information
+template<typename T>
+Tensor<T>::Tensor(const std::vector<size_t> &dimensions, const std::vector<T> &values, const std::vector<size_t> &strides, size_t offset) {
+    // check if the dimensions and values match
+    if (dimensions.empty() || values.empty()) {
+        throw std::invalid_argument("Empty dimensions or values");
+    }
+    size_t size = 1;
+    for (size_t dim: dimensions) {
+        // check if the dimensions are positive
+        if (dim == 0) {
+            throw std::invalid_argument("Zero dimension");
+        }
+        size *= dim;
+    }
+    if (size != values.size()) {
+        throw std::invalid_argument("Dimensions and values do not match");
+    }
+    // copy the dimensions to the class members
+    dims = dimensions;
+    // create a new shared_ptr with the values and assign it to the data member
+    data = std::make_shared<std::vector<T>>(values);
+    this->strides = strides;
+    this->offset = offset;
 }
 
 // a constructor that creates a tensor with given dimensions and a default value
@@ -112,7 +137,6 @@ Tensor<T>::Tensor(const Tensor<T> &other) {
     strides = other.strides;
     offset = other.offset;
 }
-
 
 template<typename T>
 Tensor<T>::Tensor(Tensor<T> &other) {
@@ -188,6 +212,24 @@ size_t Tensor<T>::order() const {
 template<typename T>
 size_t Tensor<T>::size() const {
     return data->size()-offset;
+}
+
+// a function that returns the stride of the tensor
+template<typename T>
+std::vector<size_t> Tensor<T>::getstrides() const {
+    return strides;
+}
+
+// a function that returns the offset of the tensor
+template<typename T>
+size_t Tensor<T>::getoffset() const {
+    return offset;
+}
+
+// a function that returns the const data_ptr of the tensor
+template<typename T>
+const T *Tensor<T>::data_ptr() const {
+    return data->data();
 }
 
 // a function that returns the data_ptr of the tensor
@@ -341,7 +383,9 @@ void Tensor<T>::print() const {
         std::cout << "Empty tensor" << std::endl;
         return;
     }
-    print(std::cout, std::vector<size_t>(dims.size(), 0), 0);
+    if(dims.size()==1&&dims[0] ==1){
+        std::cout << data->at(offset) << std::endl;
+    }else print(std::cout, std::vector<size_t>(dims.size(), 0), 0);
     std::cout << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 }
@@ -353,9 +397,12 @@ std::ostream &operator<<(std::ostream &os, const Tensor<T> &tensor) {
     if (!tensor.data || tensor.data->empty()) {
         os << "Empty tensor" << std::endl;
         return os;
-    }
+    }if(tensor.dims.size()==1&&tensor.dims[0] ==1){
+        os << tensor.data->at(tensor.offset) << std::endl;
+        return os;
+    }else{
     tensor.print(os, std::vector<size_t>(tensor.dims.size(), 0), 0);
-    os << std::endl;
+    os << std::endl;}
     return os;
 }
 
@@ -370,6 +417,7 @@ T &Tensor<T>::operator[](const std::vector<size_t> &indices) {
     // return a reference to the element at the linear index
     return (*data)[linear_index(indices)];
 }
+
 
 // an operator that returns a const reference to the element at a given multi-index
 template<typename T>
@@ -487,7 +535,7 @@ Tensor<T> Tensor<T>::transpose(int dim1, int dim2)  {
 }
 
 template<typename T>
-Tensor<T> * Tensor<T>::transpose(Tensor<T>& tensor, int dim1, int dim2) {
+Tensor<T> * Tensor<T>::transpose( Tensor<T>& tensor, int dim1, int dim2) {
     // Check if the dimensions are valid
     if (dim1 < 0 || dim1 >= tensor.dims.size() || dim2 < 0 || dim2 >= tensor.dims.size()) {
         throw std::invalid_argument("Invalid dimensions");
@@ -506,7 +554,7 @@ Tensor<T> * Tensor<T>::transpose(Tensor<T>& tensor, int dim1, int dim2) {
 }
 
 template<typename T>
-Tensor<T> Tensor<T>::permute(const std::vector<int>& dims) {
+Tensor<T> Tensor<T>::permute(const std::vector<int>& dims) const {
     // Check if the dimensions are valid
     if (dims.size() != this->dims.size()) {
         throw std::invalid_argument("Invalid dimensions");
@@ -591,6 +639,172 @@ Tensor<T>* Tensor<T>::view(Tensor<T>& tensor, const std::vector<size_t>& dims) {
         new_strides[i] = new_strides[i + 1] * dims[i + 1];
     }
     result->strides = new_strides;
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::add(const T &rhs) const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Add the scalar to all elements
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] += rhs;
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::add(const Tensor<T> &rhs) const {
+    // Check if the dimensions match
+    if (this->dims != rhs.dims) {
+        throw std::invalid_argument("Dimensions do not match");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Add the elements of the other tensor
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] += (*rhs.data)[i+rhs.offset];
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::subtract(const T &rhs) const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Subtract the scalar from all elements
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] -= rhs;
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::subtract(const Tensor<T> &rhs) const {
+    // Check if the dimensions match
+    if (this->dims != rhs.dims) {
+        throw std::invalid_argument("Dimensions do not match");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Subtract the elements of the other tensor
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] -= (*rhs.data)[i+rhs.offset];
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::multiply(const T &rhs) const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Multiply all elements by the scalar
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] *= rhs;
+    }
+
+    return result;
+}
+//dot product
+template <typename T>
+Tensor<T> Tensor<T>::multiply(const Tensor<T> &rhs) const {
+    //do matrix multiplication
+    if (this->dims.size() == 2 && rhs.dims.size() == 2) {
+        // Check if the dimensions match
+        if (this->dims[1] != rhs.dims[0]) {
+            throw std::invalid_argument("Dimensions do not match");
+        }
+
+        // Create a new Tensor object with the same data, dimensions, strides and offset
+        Tensor<T> result({this->dims[0], rhs.dims[1]}, 0);
+
+        // Multiply the elements of the other tensor
+        for (size_t i = 0; i < this->dims[0]; ++i) {
+            for (size_t j = 0; j < rhs.dims[1]; ++j) {
+                for (size_t k = 0; k < this->dims[1]; ++k) {
+                    (*result.data)[i * result.strides[0] + j * result.strides[1]+result.offset] +=
+                            (*this->data)[i * this->strides[0] + k * this->strides[1]+this->offset] *
+                            (*rhs.data)[k * rhs.strides[0] + j * rhs.strides[1]+rhs.offset];
+                }
+            }
+        }
+
+        return result;
+    } else {
+        // Check if the dimensions match
+        if (this->dims != rhs.dims) {
+            throw std::invalid_argument("Dimensions do not match");
+        }
+
+        // Create a new Tensor object with the same data, dimensions, strides and offset
+        Tensor<T> result(*this);
+
+        // Multiply the elements of the other tensor
+        for (size_t i = 0; i < result.size(); ++i) {
+            (*result.data)[i+result.offset] *= (*rhs.data)[i+rhs.offset];
+        }
+
+        return result;
+    }
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::divide(const T &rhs) const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Divide all elements by the scalar
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] /= rhs;
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::divide(const Tensor<T> &rhs) const {
+    // Check if the dimensions match
+    if (this->dims != rhs.dims) {
+        throw std::invalid_argument("Dimensions do not match");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Divide the elements of the other tensor
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] /= (*rhs.data)[i+rhs.offset];
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::log() const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Take the logarithm of all elements
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] = std::log((*result.data)[i+result.offset]);
+    }
+
     return result;
 }
 
