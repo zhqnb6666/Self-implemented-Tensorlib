@@ -6,6 +6,7 @@
 #include "tensor_math.cpp"
 #include "tensor_bool.h"
 #include "tensor_einsum.h"
+#include "gradient.h"
 
 //#include "tensor_einsum.cpp"
 
@@ -392,8 +393,7 @@ void test_math(){
     Tensor<int> matrix4({2, 2}, {1,0,0,1}); // 2D matrix
     Tensor<int> t1 = matrix1.subtract(matrix2);
     Tensor<int> t2 = max(matrix1,1);
-    t1.print();
-    t2.print();
+    Tensor<double> t3 = gradient(matrix3,"x*y*z");
 }
 
 int main() {
