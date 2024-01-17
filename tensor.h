@@ -10,8 +10,8 @@
 #include <stdexcept>
 #include <memory>
 
-using namespace std;
 
+using namespace std;
 // a class template for tensors of arbitrary rank and size
 template<typename T>
 class Tensor {
@@ -177,6 +177,13 @@ public:
     Tensor<T> max(int dim) const;
 
     Tensor<T> sum(int dim) const;
+
+    Tensor<bool> eq(const Tensor<T> &rhs) const;
+    Tensor<bool> ne(const Tensor<T> &rhs) const;
+    Tensor<bool> gt(const Tensor<T> &rhs) const;
+    Tensor<bool> lt(const Tensor<T> &rhs) const;
+    Tensor<bool> ge(const Tensor<T> &rhs) const;
+    Tensor<bool> le(const Tensor<T> &rhs) const;
 };
 // include the implementation file
 //#include "tensor.cpp"

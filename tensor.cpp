@@ -3,6 +3,7 @@
 //
 
 #include "tensor.h"
+#include "tensor_bool.h"
 #include <random>
 #include <algorithm>
 #include <iomanip>
@@ -943,6 +944,109 @@ Tensor<T> Tensor<T>::mean(int dim) const {
     } while (increment_indices(indices, this->dims));
 
     return result;
+}
+
+//eq: compare two tensors
+template<typename T>
+Tensor<bool> Tensor<T>::eq(const Tensor<T> &rhs) const {
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] == rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::ne(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] != rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::gt(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] > rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::lt(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] < rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::ge(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] >= rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::le(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] <= rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
 }
 
 
