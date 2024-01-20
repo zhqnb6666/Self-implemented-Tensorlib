@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.16)
 project(Tensor)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -14,4 +14,6 @@ add_executable(Tensor main.cpp
         tensor_einsum.cpp
         tensor_einsum.h
         tensor_math.cpp
-        tensor_math.h)
+        tensor_math.h
+        gradient.h
+        )

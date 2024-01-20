@@ -10,8 +10,8 @@
 #include <stdexcept>
 #include <memory>
 
-using namespace std;
 
+using namespace std;
 // a class template for tensors of arbitrary rank and size
 template<typename T>
 class Tensor {
@@ -30,8 +30,6 @@ private:
 
     // a helper function to calculate the linear index from a multi-index
     size_t linear_index(const std::vector<size_t> &indices) const;
-
-
 
 public:
     // a default constructor that creates an empty tensor
@@ -73,11 +71,8 @@ public:
     // a destructor that destroys the tensor
     ~Tensor();
 
-
     //Create a tensor with a given shape and data type and initialize it randomly
     static Tensor<T> *rand(const std::vector<size_t> &dimensions);
-
-
 
     static Tensor<T> *Zeros(const std::vector<size_t> &dimensions);
 
@@ -154,11 +149,42 @@ public:
 
     Tensor<T> view( const std::vector<size_t>& dims);
 
+    //add as a member function
+    Tensor<T> add(const Tensor<T> &rhs) const;
 
-    };
+    Tensor<T> add(const T &rhs) const;
 
+    Tensor<T> subtract(const T &rhs) const;
 
+    Tensor<T> subtract(const Tensor<T> &rhs) const;
 
+    Tensor<T> multiply(const T &rhs) const;
+
+    Tensor<T> multiply(const Tensor<T> &rhs) const;
+
+    Tensor<T> divide(const T &rhs) const;
+
+    Tensor<T> divide(const Tensor<T> &rhs) const;
+
+    Tensor<T> log() const;
+
+    Tensor<T> mean(int dim) const;
+
+    bool increment_indices(vector<size_t> &indices, const vector<size_t> &dims) const;
+
+    Tensor<T> min(int dim) const;
+
+    Tensor<T> max(int dim) const;
+
+    Tensor<T> sum(int dim) const;
+
+    Tensor<bool> eq(const Tensor<T> &rhs) const;
+    Tensor<bool> ne(const Tensor<T> &rhs) const;
+    Tensor<bool> gt(const Tensor<T> &rhs) const;
+    Tensor<bool> lt(const Tensor<T> &rhs) const;
+    Tensor<bool> ge(const Tensor<T> &rhs) const;
+    Tensor<bool> le(const Tensor<T> &rhs) const;
+};
 // include the implementation file
 //#include "tensor.cpp"
 

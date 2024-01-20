@@ -3,6 +3,7 @@
 //
 
 #include "tensor.h"
+#include "tensor_bool.h"
 #include <random>
 #include <algorithm>
 #include <iomanip>
@@ -45,7 +46,6 @@ Tensor<T>::Tensor(const std::vector<size_t> &dimensions, std::shared_ptr<std::ve
     }
     this->offset = offset;
 }
-
 
 // a constructor that creates a tensor with given dimensions and values
 template<typename T>
@@ -138,7 +138,6 @@ Tensor<T>::Tensor(const Tensor<T> &other) {
     strides = other.strides;
     offset = other.offset;
 }
-
 
 template<typename T>
 Tensor<T>::Tensor(Tensor<T> &other) {
@@ -644,11 +643,421 @@ Tensor<T>* Tensor<T>::view(Tensor<T>& tensor, const std::vector<size_t>& dims) {
     return result;
 }
 
+template <typename T>
+Tensor<T> Tensor<T>::add(const T &rhs) const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Add the scalar to all elements
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] += rhs;
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::add(const Tensor<T> &rhs) const {
+    // Check if the dimensions match
+    if (this->dims != rhs.dims) {
+        throw std::invalid_argument("Dimensions do not match");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Add the elements of the other tensor
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] += (*rhs.data)[i+rhs.offset];
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::subtract(const T &rhs) const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Subtract the scalar from all elements
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] -= rhs;
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::subtract(const Tensor<T> &rhs) const {
+    // Check if the dimensions match
+    if (this->dims != rhs.dims) {
+        throw std::invalid_argument("Dimensions do not match");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Subtract the elements of the other tensor
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] -= (*rhs.data)[i+rhs.offset];
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::multiply(const T &rhs) const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Multiply all elements by the scalar
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] *= rhs;
+    }
+
+    return result;
+}
+//dot product
+template <typename T>
+Tensor<T> Tensor<T>::multiply(const Tensor<T> &rhs) const {
+    //do matrix multiplication
+    if (this->dims.size() == 2 && rhs.dims.size() == 2) {
+        // Check if the dimensions match
+        if (this->dims[1] != rhs.dims[0]) {
+            throw std::invalid_argument("Dimensions do not match");
+        }
+
+        // Create a new Tensor object with the same data, dimensions, strides and offset
+        Tensor<T> result({this->dims[0], rhs.dims[1]}, 0);
+
+        // Multiply the elements of the other tensor
+        for (size_t i = 0; i < this->dims[0]; ++i) {
+            for (size_t j = 0; j < rhs.dims[1]; ++j) {
+                for (size_t k = 0; k < this->dims[1]; ++k) {
+                    (*result.data)[i * result.strides[0] + j * result.strides[1]+result.offset] +=
+                            (*this->data)[i * this->strides[0] + k * this->strides[1]+this->offset] *
+                            (*rhs.data)[k * rhs.strides[0] + j * rhs.strides[1]+rhs.offset];
+                }
+            }
+        }
+
+        return result;
+    } else {
+        // Check if the dimensions match
+        if (this->dims != rhs.dims) {
+            throw std::invalid_argument("Dimensions do not match");
+        }
+
+        // Create a new Tensor object with the same data, dimensions, strides and offset
+        Tensor<T> result(*this);
+
+        // Multiply the elements of the other tensor
+        for (size_t i = 0; i < result.size(); ++i) {
+            (*result.data)[i+result.offset] *= (*rhs.data)[i+rhs.offset];
+        }
+
+        return result;
+    }
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::divide(const T &rhs) const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Divide all elements by the scalar
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] /= rhs;
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::divide(const Tensor<T> &rhs) const {
+    // Check if the dimensions match
+    if (this->dims != rhs.dims) {
+        throw std::invalid_argument("Dimensions do not match");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Divide the elements of the other tensor
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] /= (*rhs.data)[i+rhs.offset];
+    }
+
+    return result;
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::log() const {
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Take the logarithm of all elements
+    for (size_t i = 0; i < result.size(); ++i) {
+        (*result.data)[i+result.offset] = std::log((*result.data)[i+result.offset]);
+    }
+
+    return result;
+}
+
+//sum: sum the elements to an lower order tensor on a given axis
+// A function to reduce a tensor along a given dimension and sum the elements in that dimension
+template<typename T>
+Tensor<T> Tensor<T>::sum(int dim) const {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= this->order()) {
+        throw std::out_of_range("Dimension out of range for sum operation");
+    }
+
+    // Determine the dimensions of the result tensor
+    std::vector<size_t> result_dims = this->dims;
+    result_dims.erase(result_dims.begin() + dim); // Remove the dimension being summed
+
+    // Create a tensor to store the result
+    Tensor<T> result(result_dims, T(0));
+
+    // Iterate over the tensor and sum along the specified dimension
+    std::vector<size_t> indices(this->order(), 0);
+    do {
+        // Calculate the linear index for the current element
+        size_t linearIdx = this->linear_index(indices);
+
+        // Calculate the linear index for the result tensor
+        std::vector<size_t> result_indices = indices;
+        result_indices.erase(result_indices.begin() + dim);
+        size_t resultLinearIdx = result.linear_index(result_indices);
+
+        // Sum the elements
+        result.data->at(resultLinearIdx) += this->data->at(linearIdx + this->offset);
+
+    } while (increment_indices(indices, this->dims));
+
+    return result;
+}
+//max: maximum of the elements on a given axis
+// A function to reduce a tensor along a given dimension and find the maximum element in that dimension
+template<typename T>
+Tensor<T> Tensor<T>::max(int dim) const {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= this->order()) {
+        throw std::out_of_range("Dimension out of range for max operation");
+    }
+
+    // Determine the dimensions of the result tensor
+    std::vector<size_t> result_dims = this->dims;
+    result_dims.erase(result_dims.begin() + dim); // Remove the dimension being reduced
+
+    // Create a tensor to store the result
+    Tensor<T> result(result_dims, T(-2147483647));
+
+    // Iterate over the tensor and find the maximum element along the specified dimension
+    std::vector<size_t> indices(this->order(), 0);
+    do {
+        // Calculate the linear index for the current element
+        size_t linearIdx = this->linear_index(indices);
+
+        // Calculate the linear index for the result tensor
+        std::vector<size_t> result_indices = indices;
+        result_indices.erase(result_indices.begin() + dim);
+        size_t resultLinearIdx = result.linear_index(result_indices);
+
+        // Find the maximum element
+        result.data->at(resultLinearIdx) = std::max(result.data->at(resultLinearIdx), this->data->at(linearIdx + this->offset));
+
+    } while (increment_indices(indices, this->dims));
+
+    return result;
+}
+//min: minimum of the elements on a given axis
+// A function to reduce a tensor along a given dimension and find the minimum element in that dimension
+template<typename T>
+Tensor<T> Tensor<T>::min(int dim) const {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= this->order()) {
+        throw std::out_of_range("Dimension out of range for min operation");
+    }
+
+    // Determine the dimensions of the result tensor
+    std::vector<size_t> result_dims = this->dims;
+    result_dims.erase(result_dims.begin() + dim); // Remove the dimension being reduced
+
+    // Create a tensor to store the result
+    Tensor<T> result(result_dims, T(2147483647));
+
+    // Iterate over the tensor and find the minimum element along the specified dimension
+    std::vector<size_t> indices(this->order(), 0);
+    do {
+        // Calculate the linear index for the current element
+        size_t linearIdx = this->linear_index(indices);
+
+        // Calculate the linear index for the result tensor
+        std::vector<size_t> result_indices = indices;
+        result_indices.erase(result_indices.begin() + dim);
+        size_t resultLinearIdx = result.linear_index(result_indices);
+
+        // Find the minimum element
+        result.data->at(resultLinearIdx) = std::min(result.data->at(resultLinearIdx), this->data->at(linearIdx + this->offset));
+
+    } while (increment_indices(indices, this->dims));
+
+    return result;
+}
+//mean: mean value of the elements on a given axis
+// A function to reduce a tensor along a given dimension and find the mean of the elements in that dimension
+template<typename T>
+Tensor<T> Tensor<T>::mean(int dim) const {
+    // Check if the dimension is valid
+    if (dim < 0 || dim >= this->order()) {
+        throw std::out_of_range("Dimension out of range for mean operation");
+    }
+
+    // Determine the dimensions of the result tensor
+    std::vector<size_t> result_dims = this->dims;
+    result_dims.erase(result_dims.begin() + dim); // Remove the dimension being reduced
+
+    // Create a tensor to store the result
+    Tensor<T> result(result_dims, T(0));
+
+    // Iterate over the tensor and find the mean of the elements along the specified dimension
+    std::vector<size_t> indices(this->order(), 0);
+    do {
+        // Calculate the linear index for the current element
+        size_t linearIdx = this->linear_index(indices);
+
+        // Calculate the linear index for the result tensor
+        std::vector<size_t> result_indices = indices;
+        result_indices.erase(result_indices.begin() + dim);
+        size_t resultLinearIdx = result.linear_index(result_indices);
+
+        // Calculate the mean
+        result.data->at(resultLinearIdx) += this->data->at(linearIdx + this->offset) / this->dims[dim];
+
+    } while (increment_indices(indices, this->dims));
+
+    return result;
+}
+
+//eq: compare two tensors
+template<typename T>
+Tensor<bool> Tensor<T>::eq(const Tensor<T> &rhs) const {
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] == rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::ne(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] != rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::gt(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] > rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::lt(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] < rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::ge(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] >= rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
+
+template<typename T>
+Tensor<bool> Tensor<T>::le(const Tensor<T> &rhs) const{
+    // check if the tensors have the same dimensions
+    if (this->dimensions() != rhs.dimensions()) {
+        throw std::invalid_argument("Dimensions mismatch!");
+    }
+    //first create a data vector to store the result
+    vector<bool> result(this->size());
+    //compare the tensors element-wise
+    for (size_t i = 0; i < this->size(); ++i) {
+        result[i] = (bool)(this->values()[i] <= rhs.values()[i]);
+    }
+    //then create a tensor to store the result
+    Tensor<bool> result_tensor(this->dimensions(), result);
+    return result_tensor;
+}
 
 
-
-
-
-
-
-
+// A helper function to increment a multi-index for iterating over a tensor
+template<typename T>
+bool Tensor<T>::increment_indices(std::vector<size_t> &indices, const std::vector<size_t> &dims) const {
+    for (int i = indices.size() - 1; i >= 0; --i) {
+        if (++indices[i] < dims[i]) {
+            return true;
+        }
+        indices[i] = 0;
+    }
+    return false;
+}

@@ -67,6 +67,32 @@ Tensor<T> add(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     return result;
 }
 
+template<typename T>
+Tensor<T> add(const Tensor<T> &lhs, const T &rhs) {
+    // create a tensor to store the result
+    Tensor<T> result(lhs.dimensions());
+
+    // add the tensor and the scalar element-wise
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        result.data_ptr()[i] = lhs.values()[i] + rhs;
+    }
+
+    return result;
+}
+
+template<typename T>
+Tensor<T> add(const T &lhs, const Tensor<T> &rhs) {
+    // create a tensor to store the result
+    Tensor<T> result(rhs.dimensions());
+
+    // add the tensor and the scalar element-wise
+    for (size_t i = 0; i < rhs.size(); ++i) {
+        result.data_ptr()[i] = lhs + rhs.values()[i];
+    }
+
+    return result;
+}
+
 // subtract two tensors
 // overload operator -
 template<typename T>
@@ -121,8 +147,35 @@ Tensor<T> subtract(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     return result;
 }
 
+template<typename T>
+Tensor<T> subtract(const Tensor<T> &lhs, const T &rhs) {
+    // create a tensor to store the result
+    Tensor<T> result(lhs.dimensions());
+
+    // subtract the tensor and the scalar element-wise
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        result.data_ptr()[i] = lhs.values()[i] - rhs;
+    }
+
+    return result;
+}
+
+template<typename T>
+Tensor<T> subtract(const T &lhs, const Tensor<T> &rhs) {
+    // create a tensor to store the result
+    Tensor<T> result(rhs.dimensions());
+
+    // subtract the tensor and the scalar element-wise
+    for (size_t i = 0; i < rhs.size(); ++i) {
+        result.data_ptr()[i] = lhs - rhs.values()[i];
+    }
+
+    return result;
+}
+
 // multiply two tensors
 // overload operator *
+
 template<typename T>
 Tensor<T> operator*(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     // do dot product if the tensors are matrices
@@ -148,6 +201,20 @@ Tensor<T> operator*(const Tensor<T> &lhs, const Tensor<T> &rhs) {
         return Tensor<T>();
     }
 }
+
+template<typename T>
+Tensor<T> operator*(const Tensor<T> &lhs, const T &rhs) {
+    // create a tensor to store the result
+    Tensor<T> result(lhs.dimensions());
+
+    // multiply the tensor and the scalar element-wise
+    for (size_t i = 0; i < lhs.size(); ++i) {
+        result.data_ptr()[i] = lhs.values()[i] * rhs;
+    }
+
+    return result;
+}
+
 // multiply as a class function
 // currently only support matrix multiplication
 template<typename T>
@@ -175,10 +242,9 @@ Tensor<T> multiply(const Tensor<T> &lhs, const Tensor<T> &rhs) {
         return Tensor<T>();
     }
 }
-// multiply a tensor and a scalar
-// overload operator *
+
 template<typename T>
-Tensor<T> operator*(const Tensor<T> &lhs, const T &rhs) {
+Tensor<T> multiply(const Tensor<T> &lhs, const T &rhs) {
     // create a tensor to store the result
     Tensor<T> result(lhs.dimensions());
 
@@ -189,6 +255,22 @@ Tensor<T> operator*(const Tensor<T> &lhs, const T &rhs) {
 
     return result;
 }
+
+template<typename T>
+Tensor<T> multiply(const T &lhs, const Tensor<T> &rhs) {
+    // create a tensor to store the result
+    Tensor<T> result(rhs.dimensions());
+
+    // multiply the tensor and the scalar element-wise
+    for (size_t i = 0; i < rhs.size(); ++i) {
+        result.data_ptr()[i] = lhs * rhs.values()[i];
+    }
+
+    return result;
+}
+
+// multiply a tensor and a scalar
+// overload operator *
 
 // divide two tensors
 // overload operator /
@@ -209,7 +291,6 @@ Tensor<T> operator/(const Tensor<T> &lhs, const Tensor<T> &rhs) {
 
     return result;
 }
-
 // divide a tensor and a scalar
 // overload operator /
 template<typename T>
@@ -224,7 +305,6 @@ Tensor<T> operator/(const Tensor<T> &lhs, const T &rhs) {
 
     return result;
 }
-
 // divide as a class function
 template<typename T>
 Tensor<T> divide(const Tensor<T> &lhs, const Tensor<T> &rhs) {
@@ -255,6 +335,18 @@ Tensor<T> divide(const Tensor<T> &lhs, const T &rhs) {
 
     return result;
 }
+template<typename T>
+Tensor<T> divide(const T &lhs, const Tensor<T> &rhs) {
+    // create a tensor to store the result
+    Tensor<T> result(rhs.dimensions());
+
+    // divide the tensor and the scalar element-wise
+    for (size_t i = 0; i < rhs.size(); ++i) {
+        result.data_ptr()[i] = lhs / rhs.values()[i];
+    }
+
+    return result;
+}
 
 //log as a class function
 template<typename T>
@@ -271,7 +363,7 @@ Tensor<T> log(const Tensor<T> &lhs) {
 }
 //sun: sum of the elements on a given axis
 template<typename T>
-Tensor<T> sum(const Tensor<T> &lhs, const size_t &axis) {
+Tensor<T> sum(const Tensor<T> &lhs,const size_t &axis) {
     return lhs.sum(axis);
 }
 //mean: mean of the elements on a given axis
@@ -282,12 +374,12 @@ Tensor<T> mean(const Tensor<T> &lhs, const size_t &axis) {
 //max: maximum of the elements on a given axis
 template<typename T>
 Tensor<T> max(const Tensor<T> &lhs, const size_t &axis) {
-    return Tensor<T>::lhs.max(axis);
+    return lhs.max(axis);
 }
 //min: minimum of the elements on a given axis
 template<typename T>
 Tensor<T> min(const Tensor<T> &lhs, const size_t &axis) {
-    return Tensor<T>::lhs.min(axis);
+    return lhs.min(axis);
 }
 //eq: compare two tensors
 template<typename T>
@@ -306,6 +398,10 @@ Tensor<bool> eq(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     Tensor<bool> result_tensor(lhs.dimensions(), result);
     return result_tensor;
 }
+template<typename T>
+Tensor<bool> operator==(const Tensor<T> &lhs, const Tensor<T> &rhs) {
+    return eq(lhs, rhs);
+}
 //ne: compare two tensors
 template<typename T>
 Tensor<bool> ne(const Tensor<T> &lhs, const Tensor<T> &rhs) {
@@ -322,6 +418,10 @@ Tensor<bool> ne(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     //then create a tensor to store the result
     Tensor<bool> result_tensor(lhs.dimensions(), result);
     return result_tensor;
+}
+template<typename T>
+Tensor<bool> operator!=(const Tensor<T> &lhs, const Tensor<T> &rhs) {
+    return ne(lhs, rhs);
 }
 //gt: compare two tensors
 template<typename T>
@@ -340,6 +440,10 @@ Tensor<bool> gt(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     Tensor<bool> result_tensor(lhs.dimensions(), result);
     return result_tensor;
 }
+template<typename T>
+Tensor<bool> operator>(const Tensor<T> &lhs, const Tensor<T> &rhs) {
+    return gt(lhs, rhs);
+}
 //lt: compare two tensors
 template<typename T>
 Tensor<bool> lt(const Tensor<T> &lhs, const Tensor<T> &rhs) {
@@ -356,6 +460,10 @@ Tensor<bool> lt(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     //then create a tensor to store the result
     Tensor<bool> result_tensor(lhs.dimensions(), result);
     return result_tensor;
+}
+template<typename T>
+Tensor<bool> operator<(const Tensor<T> &lhs, const Tensor<T> &rhs) {
+    return lt(lhs, rhs);
 }
 //ge: compare two tensors
 template<typename T>
@@ -374,6 +482,10 @@ Tensor<bool> ge(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     Tensor<bool> result_tensor(lhs.dimensions(), result);
     return result_tensor;
 }
+template<typename T>
+Tensor<bool> operator>=(const Tensor<T> &lhs, const Tensor<T> &rhs) {
+    return ge(lhs, rhs);
+}
 //le: compare two tensors
 template<typename T>
 Tensor<bool> le(const Tensor<T> &lhs, const Tensor<T> &rhs) {
@@ -390,4 +502,8 @@ Tensor<bool> le(const Tensor<T> &lhs, const Tensor<T> &rhs) {
     //then create a tensor to store the result
     Tensor<bool> result_tensor(lhs.dimensions(), result);
     return result_tensor;
+}
+template<typename T>
+Tensor<bool> operator<=(const Tensor<T> &lhs, const Tensor<T> &rhs) {
+    return le(lhs, rhs);
 }
