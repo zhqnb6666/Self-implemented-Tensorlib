@@ -16,4 +16,5 @@ add_executable(Tensor main.cpp
         tensor_math.cpp
         tensor_math.h
         gradient.h
-        )
+        gradient.cpp
+)

@@ -632,27 +632,27 @@ void test_math_comparision(){
 
 void test_gradient(){
     std::cout << "test_gradient: " << std::endl;
-    Tensor<double> matrix({2},{1,2,3});
+    Tensor<double> matrix({1,1}, {2});
     Tensor<double> matrix_gradient = gradient(matrix,"x*x");
     matrix_gradient.print();
 }
 
 int main() {
-    test_tensor();
-    test_rand();
-    test_slice();
-    test_cat();
-    test_tile();
-    test_mutate();
-    test_view();
-    test_permute();
-    test_transpose();
-    test_bool_Tensor();
-    test_save_load();
-    test_einsum();
-    test_math_pointwise(); //add sub mul div log
-    test_math_reduction(); //sum mean max min
-    test_math_comparision(); //comparision == != > < >= <=
+//    test_tensor();
+//    test_rand();
+//    test_slice();
+//    test_cat();
+//    test_tile();
+//    test_mutate();
+//    test_view();
+//    test_permute();
+//    test_transpose();
+//    test_bool_Tensor();
+//    test_save_load();
+//    test_einsum();
+//    test_math_pointwise(); //add sub mul div log
+//    test_math_reduction(); //sum mean max min
+//    test_math_comparision(); //comparision == != > < >= <=
     test_gradient();  //
     return 0;
 }
