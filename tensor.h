@@ -142,7 +142,12 @@ public:
     //permute,an operator that returns a permuted tensor
     static Tensor<T> *permute( Tensor<T>& tensor, const std::vector<int>& dims);
 
+    Tensor<T> permute( const std::vector<int>& dims);
+
     Tensor<T> permute( const std::vector<int>& dims) const;
+
+    static Tensor<T> clone(const Tensor<T>& tensor);
+
 
     //view,an operator that returns a reshaped tensor
     static Tensor<T> *view( Tensor<T>& tensor, const std::vector<size_t>& dims);

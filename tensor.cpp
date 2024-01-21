@@ -252,26 +252,27 @@ Tensor<T>* Tensor<T>::rand(const std::vector<size_t> &dimensions) {
     }
     // Create a data vector and fill it with random numbers
     std::vector<T> data(size);
+    std::random_device rd;
+    std::mt19937 gen(rd());
     if (std::is_same<T, int>::value) {
+        std::uniform_int_distribution<> dis(0, 100);
         for (size_t i = 0; i < size; i++) {
-            data[i] = static_cast<T>(std::rand() % 101); // Generate random int between 0 and 100
+            data[i] = static_cast<T>(dis(gen)); // Generate random int between 0 and 100
         }
-    } else if (std::is_same<T, float>::value) {
+    } else if (std::is_same<T, float>::value || std::is_same<T, double>::value) {
+        std::uniform_real_distribution<> dis(0, 1);
         for (size_t i = 0; i < size; i++) {
-            data[i] = static_cast<T>(std::rand() / (RAND_MAX + 1.0)); // Generate random float between 0 and 1
+            data[i] = static_cast<T>(dis(gen)); // Generate random float or double between 0 and 1
         }
     } else if (std::is_same<T, char>::value) {
+        std::uniform_int_distribution<> dis(0, 255);
         for (size_t i = 0; i < size; i++) {
-            data[i] = static_cast<T>(std::rand() % 256); // Generate random char between 0 and 255
-        }
-
-    } else if (std::is_same<T, double>::value) {
-        for (size_t i = 0; i < size; i++) {
-            data[i] = static_cast<T>(std::rand() / (RAND_MAX + 1.0)); // Generate random double between 0 and 1
+            data[i] = static_cast<T>(dis(gen)); // Generate random char between 0 and 255
         }
     } else if (std::is_same<T, bool>::value) {
+        std::uniform_int_distribution<> dis(0, 1);
         for (size_t i = 0; i < size; i++) {
-            data[i] = static_cast<T>(std::rand() % 2); // Generate random bool
+            data[i] = static_cast<T>(dis(gen)); // Generate random bool
         }
     } else {
         throw std::invalid_argument("Unsupported data type");
@@ -555,7 +556,26 @@ Tensor<T> * Tensor<T>::transpose( Tensor<T>& tensor, int dim1, int dim2) {
 }
 
 template<typename T>
-Tensor<T> Tensor<T>::permute(const std::vector<int>& dims) const {
+Tensor<T> Tensor<T>::permute(const std::vector<int>& dims) {
+    // Check if the dimensions are valid
+    if (dims.size() != this->dims.size()) {
+        throw std::invalid_argument("Invalid dimensions");
+    }
+
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(*this);
+
+    // Permute the strides and dimensions
+    for (size_t i = 0; i < dims.size(); ++i) {
+        result.strides[i] = this->strides[dims[i]];
+        result.dims[i] = this->dims[dims[i]];
+    }
+
+    return result;
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::permute(const std::vector<int>& dims) const{
     // Check if the dimensions are valid
     if (dims.size() != this->dims.size()) {
         throw std::invalid_argument("Invalid dimensions");
@@ -640,6 +660,13 @@ Tensor<T>* Tensor<T>::view(Tensor<T>& tensor, const std::vector<size_t>& dims) {
         new_strides[i] = new_strides[i + 1] * dims[i + 1];
     }
     result->strides = new_strides;
+    return result;
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::clone(const Tensor<T> &tensor) {
+    // Create a new Tensor object with the same data, dimensions, strides and offset
+    Tensor<T> result(tensor);
     return result;
 }
 

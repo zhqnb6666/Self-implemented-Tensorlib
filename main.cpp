@@ -73,7 +73,16 @@ void test_tensor() {
     std::cout << "Type: " << tensor7.type() << std::endl;
 }
 
+void test_eye() {
+    // Create an identity matrix of size 3
+    Tensor<int>* tensor = Tensor<int>::eye(2);
+    std::cout<<"test_eye"<<std::endl;
+    tensor->print();
+}
+
+
 void test_rand() {
+    std::cout << "Test the rand function:" << std::endl;
     // Test the rand function with double type
     Tensor<double>* tensor_double = Tensor<double>::rand({2, 3});
     std::cout << "Double tensor:" << std::endl;
@@ -93,7 +102,7 @@ void test_rand() {
     delete tensor_bool;
 }
 
-void test_slice() {
+void test_index() {
     // Create a Tensor object
     Tensor<int> tensor({3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
     std::cout << "Original Tensor:" << std::endl;
@@ -104,11 +113,6 @@ void test_slice() {
     std::cout << "Subset1 Tensor:" << std::endl;
     subset1->print();
 
-    // Use the overloaded operator() function to get a subset of the Tensor
-    Tensor<int>* subset2 = tensor(1, {0, 1});
-    std::cout << "Subset2 Tensor:" << std::endl;
-    subset2->print();
-
     // Change an element in the subset
     (*subset1)[{0}] = 100;
     std::cout << "Subset Tensor after change:" << std::endl;
@@ -117,6 +121,26 @@ void test_slice() {
     tensor.print();
 
     delete subset1;
+}
+
+void test_slice() {
+    // Create a Tensor object
+    Tensor<int> tensor({3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    std::cout << "Original Tensor:" << std::endl;
+    tensor.print();
+
+    // Use the overloaded operator() function to get a subset of the Tensor
+    Tensor<int>* subset2 = tensor(1, {0, 1});
+    std::cout << "Subset2 Tensor:" << std::endl;
+    subset2->print();
+
+    // Change an element in the subset
+    (*subset2)[{0}] = 100;
+    std::cout << "Subset Tensor after change:" << std::endl;
+    subset2->print();
+    std::cout << "Original Tensor after subset change:" << std::endl;
+    tensor.print();
+
     delete subset2;
 }
 
@@ -161,19 +185,38 @@ void test_mutate() {
     // Print the original tensor
     std::cout << "Original tensor:" << std::endl;
     t.print();
-    std::cout << "t(1):" << std::endl;
-    t(1)->print();
-    std::cout<<"Mutated tensor:"<<std::endl;
-    *t(1) = 2;
+
+    // Get a reference to an element in the tensor
+    Tensor<int>* element = t(1);
+    std::cout << "Element before mutation:" << std::endl;
+    element->print();
+
+    // Mutate the element
+    *element = 2;
+    std::cout << "Element after mutation:" << std::endl;
+    element->print();
+
+    // Print the tensor after mutation
+    std::cout << "Tensor after mutation:" << std::endl;
     t.print();
 
-   Tensor<int> t2({2, 4}, data);
-    std::cout<<"t2:"<<std::endl;
+    // Create another tensor
+    Tensor<int> t2({2, 4}, data);
+    std::cout << "Original tensor2:" << std::endl;
     t2.print();
-    // Use the overloaded assignment operator to set all elements to a new array
-    *t2(1,{0,4}) = {5,6,7,8};
-    // Print the modified tensor
-    std::cout << "Modified tensor:" << std::endl;
+
+    // Get a slice of the tensor
+    Tensor<int>* slice = t2(1, {0, 4});
+    std::cout << "Slice before mutation:" << std::endl;
+    slice->print();
+
+    // Mutate the slice
+    *slice = {5, 6, 7, 8};
+    std::cout << "Slice after mutation:" << std::endl;
+    slice->print();
+
+    // Print the tensor after mutating the slice
+    std::cout << "Tensor2 after slice mutation:" << std::endl;
     t2.print();
 }
 
@@ -333,18 +376,47 @@ void test_einsum() {
     Tensor<int> matrix1({3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9}); // 2D matrix
     Tensor<int> matrix2({3, 2}, {7, 8, 9, 10, 11, 12}); // 2D matrix
     Tensor<int> matrix3({2, 3}, {13, 14, 15, 16, 17, 18}); // 2D matrix
+    Tensor<int> matrix4({3, 3}, {1, 2, 3, 4, 5, 6, 7, 8, 9}); // 2D matrix
     Tensor<int> tensor1({2, 3, 2}, {1, 2, 3, 4, 5, 6 ,7 ,8 ,9 ,10 ,11 ,12}); // 3D tensor
     Tensor<int> tensor2({2, 3, 2}, {13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24}); // 3D tensor
+    Tensor<int>* tensor3 = Tensor<int>::rand({2, 3, 4, 5}); // "pqrs"
+    Tensor<int>* tensor4 = Tensor<int>::rand({2, 2, 3, 2, 4}); //"tuqvr"
+    Tensor<int> tensor5({3,3}, {1, 2, 3, 4, 5, 6, 7, 8, 9});
+    Tensor<int> tensor6({3,3,3}, {1, 2, 3, 4, 5, 6, 7, 8, 9,
+                                  1, 2, 3, 4, 5, 6, 7, 8, 9,
+                                  1, 2, 3, 4, 5, 6, 7, 8, 9});
+    Tensor<int> tensor7({3,3},{1, 2, 3, 4, 5, 6, 7, 8, 9});
+    Tensor<int> tensor8({2,2,3},{1,2,3,4,5,6,7,8,9,10,11,12});
 
-    // Test Summation
-    std::cout << "Summation Test: " << std::endl;
-    auto sum_result = einsum("i->", vector1);
-    std::cout << "Sum: " << sum_result << std::endl;
+    // Test Diagonal
+    std::cout << "\nDiagonal Test: " << std::endl;
+    auto diagonal_result = einsum("ii->i", matrix1);
+    diagonal_result.print();
 
-    // Test Element-wise Multiplication
-    std::cout << "\nElement-wise Multiplication Test: " << std::endl;
-    auto element_wise_result = einsum("i,i->i", vector1, vector2);
-    element_wise_result.print();
+    // Test Transpose
+    std::cout << "\nTranspose Test: " << std::endl;
+    auto transpose_result = einsum("ijk->jki", tensor1);
+    std::cout << transpose_result << std::endl;
+
+    // Permute Test
+    std::cout << "\nPermute Test: " << std::endl;
+    auto permute_result = einsum("...ij->...ji", tensor1);
+    std::cout << permute_result << std::endl;
+
+    // Test Reduce sum
+    std::cout << "Reduce Sum Test: " << std::endl;
+    auto sum_result = einsum("ij->", matrix1);
+    std::cout << "Reduce Sum: " << sum_result << std::endl;
+
+    // Test Sum along dimension
+    std::cout << "\nSum along dimension Test: " << std::endl;
+    auto sum_along_dim_result = einsum("ij->j", matrix1);
+    sum_along_dim_result.print();
+
+    // Test Matrix and vector mul
+    std::cout << "\nMatrix and vector mul Test: " << std::endl;
+    auto matrix_vector_mul_result = einsum("ij,j->i", matrix1, vector1);
+    matrix_vector_mul_result.print();
 
     // Test Matrix Multiplication
     std::cout << "\nMatrix Multiplication Test: " << std::endl;
@@ -356,31 +428,45 @@ void test_einsum() {
     auto dot_product_result = einsum("i,i->", vector1, vector2);
     std::cout << "Dot product: " << dot_product_result << std::endl;
 
+    // Test Pointwise Multiplication and Sum
+    std::cout << "\nPointwise Multiplication and Sum Test: " << std::endl;
+    auto pointwise_mul_sum_result = einsum("ij,ij->", matrix1, matrix4);
+    std::cout << "Pointwise multiplication and sum: " << pointwise_mul_sum_result << std::endl;
+
     // Test Outer Product
     std::cout << "\nOuter Product Test: " << std::endl;
     auto outer_product_result = einsum("i,j->ij", vector1, vector2);
     outer_product_result.print();
 
-    // Test Transpose
-    std::cout << "\nTranspose Test: " << std::endl;
-    auto transpose_result = einsum("ijk->jki", tensor1);
-    std::cout << transpose_result << std::endl;
+    // Test Batch Matrix Multiplication
+    std::cout << "\nBatch Matrix Multiplication Test: " << std::endl;
+    auto batch_matrix_mul_result = einsum("bij,bjk->bik", tensor1, tensor8);
+    batch_matrix_mul_result.print();
 
-    // Test Diagonal
-    std::cout << "\nDiagonal Test: " << std::endl;
-    auto diagonal_result = einsum("ii->i", matrix1);
-    diagonal_result.print();
+
+    // Test contraction
+    std::cout << "\nContraction Test: " << std::endl;
+    auto contraction_result = einsum("ijk,kli->jl",tensor1, tensor2);
+    std::cout << "Contraction product:\n ";
+    contraction_result.print();
+    Tensor<int>contraction_result2 = einsum("pqrs,tuqvr->pstuv", *tensor3, *tensor4);
+    contraction_result2.print();
+
+    // Test bilinear transformation
+    std::cout << "\nBilinear Transformation Test: " << std::endl;
+    auto bilinear_result = einsum("ik,jkl,jl->ij", tensor5, tensor6, tensor7);
+    std::cout << "Bilinear product:\n ";
+    bilinear_result.print();
+
+    // Test Element-wise Multiplication
+    std::cout << "\nElement-wise Multiplication Test: " << std::endl;
+    auto element_wise_result = einsum("i,i->i", vector1, vector2);
+    element_wise_result.print();
 
     // Test Trace
     std::cout << "\nTrace Test: " << std::endl;
     auto trace_result = einsum("ii", matrix1);
     std::cout << "Trace: " << trace_result << std::endl;
-
-    // Test inner product
-    std::cout << "\nInner Product Test: " << std::endl;
-    auto inner_product_result = einsum("ijk,kjl->il",tensor1, tensor2);
-    std::cout << "Inner product:\n ";
-    inner_product_result.print();
 }
 
 void test_math_pointwise(){
@@ -637,22 +723,62 @@ void test_gradient(){
     matrix_gradient.print();
 }
 
+void test_clone() {
+    Tensor<int> t1({2, 2}, {1, 2, 3, 4});
+    Tensor<int> t2 = Tensor<int>::clone(t1);
+    t1[{0,0}] = 0;
+    std::cout << "t1: " << std::endl;
+    t1.print();
+    std::cout << "t2: " << std::endl;
+    t2.print();
+}
+
+void test_print() {
+    // 0D tensor
+    Tensor<int> tensor0;
+    tensor0.print();
+
+    // 1D tensor
+    Tensor<int> tensor1({5}, {1, 2, 3, 4, 5});
+    tensor1.print();
+
+    // 2D tensor
+    Tensor<int> tensor2({2, 3}, {1, 2, 3, 4, 5, 6});
+    tensor2.print();
+
+    // 3D tensor
+    Tensor<int> tensor3({2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8});
+    tensor3.print();
+
+    // 4D tensor
+    Tensor<int> tensor4({2, 2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16});
+    tensor4.print();
+
+    // 5D tensor
+    Tensor<int> tensor5({2, 2, 2, 2, 2}, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32});
+    tensor5.print();
+}
+
+
+
 int main() {
+    test_eye();//item 1
+    test_index();//item 2,3
+    test_slice();//item 4,5
+    test_mutate();//item 6,7
+    test_transpose();//item 8
+    test_permute();//item 9
+    test_view();//item 10
+    test_clone();//item 11
+    test_einsum();//item 12
+    test_save_load();//item 15
+    test_gradient();  //item 18
+    test_print();//item 20
 //    test_tensor();
 //    test_rand();
-//    test_slice();
 //    test_cat();
 //    test_tile();
-//    test_mutate();
-//    test_view();
-//    test_permute();
-//    test_transpose();
 //    test_bool_Tensor();
-//    test_save_load();
-//    test_einsum();
-//    test_math_pointwise(); //add sub mul div log
-//    test_math_reduction(); //sum mean max min
 //    test_math_comparision(); //comparision == != > < >= <=
-    test_gradient();  //
     return 0;
 }
