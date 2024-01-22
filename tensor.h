@@ -189,6 +189,8 @@ public:
     Tensor<bool> lt(const Tensor<T> &rhs) const;
     Tensor<bool> ge(const Tensor<T> &rhs) const;
     Tensor<bool> le(const Tensor<T> &rhs) const;
+
+    Tensor<T> *full(const vector<size_t> &dimensions, const T &value);
 };
 // include the implementation file
 //#include "tensor.cpp"

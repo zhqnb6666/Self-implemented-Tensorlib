@@ -294,6 +294,13 @@ Tensor<T>* Tensor<T>::Ones(const std::vector<size_t> &dimensions) {
     auto *tensor = new Tensor<T>(dimensions, 1);
     return tensor;
 }
+//full
+template<typename T>
+Tensor<T>* Tensor<T>::full(const std::vector<size_t> &dimensions, const T &value) {
+    auto *tensor = new Tensor<T>(dimensions, value);
+    return tensor;
+}
+
 //Create an identity matrix with a given shape and data type
 template<typename T>
 Tensor<T>* Tensor<T>::eye(size_t n) {
