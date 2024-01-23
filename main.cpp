@@ -73,11 +73,11 @@ void test_tensor() {
     std::cout << "Type: " << tensor7.type() << std::endl;
 }
 
-void test_eye() {
-    // Create an identity matrix of size 3
-    Tensor<int>* tensor = Tensor<int>::eye(2);
-    std::cout<<"test_eye"<<std::endl;
-    tensor->print();
+void test_diagonal() {
+    std::vector<int> diagonal_values = {1, 2, 3};
+    Tensor<int>* diagonal_matrix = Tensor<int>::diagonal(diagonal_values);
+    diagonal_matrix->print();
+    delete diagonal_matrix;
 }
 
 
@@ -762,7 +762,7 @@ void test_print() {
 
 
 int main() {
-    test_eye();//item 1
+    test_diagonal();//item 1
     test_index();//item 2,3
     test_slice();//item 4,5
     test_mutate();//item 6,7
@@ -774,11 +774,11 @@ int main() {
     test_save_load();//item 15
     test_gradient();  //item 18
     test_print();//item 20
-//    test_tensor();
-//    test_rand();
-//    test_cat();
-//    test_tile();
-//    test_bool_Tensor();
-//    test_math_comparision(); //comparision == != > < >= <=
+    test_tensor();
+    test_rand();
+    test_cat();
+    test_tile();
+    test_bool_Tensor();
+    test_math_comparision(); //comparision == != > < >= <=
     return 0;
 }

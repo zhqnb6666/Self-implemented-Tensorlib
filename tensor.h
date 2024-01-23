@@ -78,6 +78,9 @@ public:
 
     static Tensor<T> *Ones(const std::vector<size_t> &dimensions);
 
+    //diagonal, a function that returns a diagonal tensor
+    static Tensor<T> *diagonal(const std::vector<T> &values);
+
     // a function that returns the eye matrix
     static Tensor<T> *eye(size_t n);
 

@@ -312,6 +312,24 @@ Tensor<T>* Tensor<T>::eye(size_t n) {
     return tensor;
 }
 
+//Create a diagonal matrix with a given shape and data type
+template<typename T>
+Tensor<T>* Tensor<T>::diagonal(const std::vector<T> &values) {
+    // Create a data vector and fill it with zeros
+    std::vector<T> data(values.size() * values.size(), 0);
+
+    // Set the diagonal elements to the given values
+    for (size_t i = 0; i < values.size(); i++) {
+        data[i * values.size() + i] = values[i];
+    }
+
+    // Create a new Tensor object with the given dimensions and data
+    auto* tensor = new Tensor<T>({values.size(), values.size()}, data);
+
+    // Return the pointer to the new Tensor object
+    return tensor;
+}
+
 
 
 // a function that returns the type of the tensor
